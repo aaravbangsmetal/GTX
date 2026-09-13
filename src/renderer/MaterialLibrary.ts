@@ -10,6 +10,8 @@ export class MaterialLibrary {
     this.createRoadMaterials();
     this.createNeonMaterials();
     this.createVegetationMaterials();
+    this.createVehicleMaterials();
+    this.createCharacterMaterials();
 
     events.on('world:timeChange', ({ isNight }) => {
       if (this.buildingWindow) {
@@ -119,6 +121,49 @@ export class MaterialLibrary {
         roughness: 0.7,
         metalness: 0.0,
         side: THREE.DoubleSide,
+      }),
+    );
+  }
+
+  private createVehicleMaterials(): void {
+    this.add(
+      'vehicle-body',
+      new THREE.MeshStandardMaterial({
+        color: 0xcc0000,
+        roughness: 0.3,
+        metalness: 0.6,
+      }),
+    );
+
+    this.add(
+      'vehicle-glass',
+      new THREE.MeshPhysicalMaterial({
+        color: 0x88ccff,
+        transparent: true,
+        opacity: 0.4,
+        roughness: 0.1,
+        metalness: 0.0,
+        transmission: 0.6,
+      }),
+    );
+  }
+
+  private createCharacterMaterials(): void {
+    this.add(
+      'character-skin',
+      new THREE.MeshStandardMaterial({
+        color: 0xd4a574,
+        roughness: 0.7,
+        metalness: 0.0,
+      }),
+    );
+
+    this.add(
+      'character-clothes',
+      new THREE.MeshStandardMaterial({
+        color: 0x3366cc,
+        roughness: 0.8,
+        metalness: 0.0,
       }),
     );
   }
