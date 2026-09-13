@@ -3,7 +3,8 @@ import type { Quat, Vec3 } from '../shared/types';
 import { COLLISION_MASKS, CollisionGroup } from './collision-groups';
 import { headingFromQuat, quatFromHeading, speedFromVelocity } from './helpers';
 import type { VehiclePhysicsService } from './__mocks__/MockPhysicsService';
-import type { VehicleTypeConfig, WheelInfo } from './types';
+import { clamp, lerp } from '../shared/math';
+import type { VehicleInput, VehicleTypeConfig, WheelInfo } from './types';
 import { WheelRaycaster } from './WheelRaycaster';
 
 function createWheelLayout(config: VehicleTypeConfig): WheelInfo[] {
@@ -84,6 +85,7 @@ export class VehiclePhysics {
   readonly wheels: WheelInfo[];
   private bodyId: number = 0;
   private wheelRaycaster: WheelRaycaster;
+  private currentSteer = 0;
   private chassisBody: CANNON.Body | null = null;
 
   constructor(
@@ -109,6 +111,65 @@ export class VehiclePhysics {
       scale: { x: 1, y: 1, z: 1 },
     });
     this.chassisBody = this.physics.getCannonBody(this.bodyId);
+  }
+
+  update(input: VehicleInput, dt: number): { speed: number; speedKmh: number; rpm: number } {
+    if (!this.chassisBody) {
+      return { speed: 0, speedKmh: 0, rpm: 0 };
+    }
+
+    const body = this.chassisBody;
+    const transform = this.physics.getBodyTransform(this.bodyId);
+    const chassisQuat = transform.rotation;
+    const chassisPos = transform.position;
+
+    this.wheelRaycaster.raycastWheels(
+      chassisPos,
+      chassisQuat,
+      this.wheels,
+      this.config.suspensionRestLength,
+    );
+
+    for (const wheel of this.wheels) {
+      this.wheelRaycaster.applySuspensionForce(wheel, body, this.config, chassisQuat);
+    }
+
+    const targetSteer = input.steer * this.config.steerSpeed;
+    this.currentSteer = lerp(this.currentSteer, targetSteer, clamp(dt * 8, 0, 1));
+
+    for (const wheel of this.wheels) {
+      this.wheelRaycaster.applySteering(wheel, wheel.isFront ? this.currentSteer : 0);
+    }
+
+    const engineForce = input.throttle * this.config.engineForce;
+    for (const wheel of this.wheels) {
+      if (!wheel.isFront) {
+        this.wheelRaycaster.applyEngineForce(wheel, engineForce, body, chassisQuat, this.config.grip);
+      }
+    }
+
+    if (input.brake) {
+      for (const wheel of this.wheels) {
+        this.wheelRaycaster.applyBrakeForce(
+          wheel,
+          this.config.brakeForce,
+          body,
+          chassisQuat,
+          this.config.grip,
+        );
+      }
+    }
+
+    const speed = speedFromVelocity({ x: body.velocity.x, y: body.velocity.y, z: body.velocity.z });
+    if (speed > this.config.maxSpeed) {
+      const scale = this.config.maxSpeed / speed;
+      body.velocity.x *= scale;
+      body.velocity.z *= scale;
+    }
+
+    const speedKmh = speed * 3.6;
+    const rpm = 800 + speedKmh * 40;
+    return { speed, speedKmh, rpm };
   }
 
   getBodyId(): number {
