@@ -8,6 +8,7 @@ export class MusicPlayer {
   private currentSoundId = -1;
   private readonly playlist = [MUSIC_TRACKS.day, MUSIC_TRACKS.night];
   private trackIndex = 0;
+  private isNight = false;
   private started = false;
   private targetVolume = 1;
 
