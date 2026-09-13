@@ -7,6 +7,9 @@ export class MaterialLibrary {
 
   init(events: EventBus): void {
     this.createBuildingMaterials();
+    this.createRoadMaterials();
+    this.createNeonMaterials();
+    this.createVegetationMaterials();
 
     events.on('world:timeChange', ({ isNight }) => {
       if (this.buildingWindow) {
@@ -46,6 +49,78 @@ export class MaterialLibrary {
       metalness: 0.1,
     });
     this.add('building-window', this.buildingWindow);
+  }
+
+  private createRoadMaterials(): void {
+    this.add(
+      'road-asphalt',
+      new THREE.MeshStandardMaterial({
+        color: 0x2a2a2e,
+        roughness: 0.9,
+        metalness: 0.0,
+      }),
+    );
+
+    this.add(
+      'road-marking',
+      new THREE.MeshBasicMaterial({ color: 0xffffff }),
+    );
+
+    this.add(
+      'sidewalk-concrete',
+      new THREE.MeshStandardMaterial({
+        color: 0xcccccc,
+        roughness: 0.85,
+        metalness: 0.0,
+      }),
+    );
+  }
+
+  private createNeonMaterials(): void {
+    this.add(
+      'neon-pink',
+      new THREE.MeshStandardMaterial({
+        color: 0xff1493,
+        emissive: 0xff1493,
+        emissiveIntensity: 2.0,
+        roughness: 0.3,
+        metalness: 0.1,
+        toneMapped: false,
+      }),
+    );
+
+    this.add(
+      'neon-blue',
+      new THREE.MeshStandardMaterial({
+        color: 0x00bfff,
+        emissive: 0x00bfff,
+        emissiveIntensity: 2.0,
+        roughness: 0.3,
+        metalness: 0.1,
+        toneMapped: false,
+      }),
+    );
+  }
+
+  private createVegetationMaterials(): void {
+    this.add(
+      'palm-trunk',
+      new THREE.MeshStandardMaterial({
+        color: 0x8b6914,
+        roughness: 0.9,
+        metalness: 0.0,
+      }),
+    );
+
+    this.add(
+      'palm-leaves',
+      new THREE.MeshStandardMaterial({
+        color: 0x228b22,
+        roughness: 0.7,
+        metalness: 0.0,
+        side: THREE.DoubleSide,
+      }),
+    );
   }
 
   dispose(): void {
