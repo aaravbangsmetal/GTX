@@ -44,6 +44,35 @@ export class PhysicsRaycaster {
     return this.toHit(bodyId, this.result);
   }
 
+  castAll(options: RaycastOptions): RaycastHit[] {
+    const direction = normalize3(options.direction);
+    const hits: RaycastHit[] = [];
+    if (direction.x === 0 && direction.y === 0 && direction.z === 0) {
+      return hits;
+    }
+
+    const from = new CANNON.Vec3(options.origin.x, options.origin.y, options.origin.z);
+    const to = new CANNON.Vec3(
+      from.x + direction.x * options.maxDistance,
+      from.y + direction.y * options.maxDistance,
+      from.z + direction.z * options.maxDistance,
+    );
+
+    this.world.raycastAll(from, to, {
+      collisionFilterMask: options.collisionMask ?? ~0,
+      skipBackfaces: true,
+    }, (result) => {
+      if (!result.body) return;
+      const bodyId = this.cannonToBodyId.get(result.body.id);
+      if (bodyId === undefined) return;
+      if (options.skipBodyId !== undefined && bodyId === options.skipBodyId) return;
+      hits.push(this.toHit(bodyId, result));
+    });
+
+    hits.sort((a, b) => a.distance - b.distance);
+    return hits;
+  }
+
   private toHit(bodyId: number, result: CANNON.RaycastResult): RaycastHit {
     return {
       bodyId,
