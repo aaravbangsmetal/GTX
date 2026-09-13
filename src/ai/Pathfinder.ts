@@ -7,6 +7,7 @@ interface NearestRoadResult {
   segment: AiRoadSegment;
   t: number;
   point: Vec3;
+  dist: number;
 }
 
 export class RoadPathfinder {
@@ -104,7 +105,7 @@ export class RoadPathfinder {
       }
     }
 
-    return best ?? { segment: this.segments[0], t: 0, point: vec3() };
+    return best ?? { segment: this.segments[0], t: 0, point: vec3(), dist: Infinity };
   }
 
   private aStar(startId: string, endId: string): string[] {
