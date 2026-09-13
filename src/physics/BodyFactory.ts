@@ -4,6 +4,7 @@ import { getPhysicsMaterial } from './PhysicsMaterial';
 import type {
   BodyFactoryBoxConfig,
   BodyFactoryCapsuleConfig,
+  BodyFactoryCylinderConfig,
   BodyFactorySphereConfig,
   BodyFactoryTrimeshConfig,
 } from './types';
@@ -115,6 +116,30 @@ export class BodyFactory {
       collisionFilterGroup: config.group,
       collisionFilterMask: config.mask,
       type: CANNON.Body.STATIC,
+    });
+
+    body.addShape(shape);
+    this.world.addBody(body);
+    return body;
+  }
+
+  createCylinder(config: BodyFactoryCylinderConfig): CANNON.Body {
+    const shape = new CANNON.Cylinder(
+      config.radiusTop,
+      config.radiusBottom,
+      config.height,
+      12,
+    );
+    shape.collisionFilterGroup = config.group;
+    shape.collisionFilterMask = config.mask;
+
+    const body = new CANNON.Body({
+      mass: config.mass,
+      position: toCannonVec3(config.position),
+      collisionFilterGroup: config.group,
+      collisionFilterMask: config.mask,
+      material: getPhysicsMaterial(config.material),
+      type: bodyTypeFromMass(config.mass),
     });
 
     body.addShape(shape);
