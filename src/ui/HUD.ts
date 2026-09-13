@@ -58,7 +58,7 @@ export class HUD {
       this.armorBar.classList.add('hidden');
     }
 
-    this.moneyDisplay.textContent = `$${Math.max(0, Math.floor(state.money)).toLocaleString('en-US')}`;
+    this.moneyDisplay.textContent = formatMoney(state.money);
 
     if (state.weaponId) {
       this.weaponDisplay.classList.remove('hidden');
