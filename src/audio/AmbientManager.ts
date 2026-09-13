@@ -1,5 +1,6 @@
 import type { Howl } from 'howler';
 import type { DistrictId } from '../shared/types';
+import { TIME_AMBIENT_LAYERS } from './AudioConfig';
 import { getAmbientZone } from './AudioZones';
 import type { AudioManager } from './AudioManager';
 import type { AmbientSoundDef } from './types';
@@ -14,6 +15,7 @@ export class AmbientManager {
   private currentDistrict: DistrictId | null = null;
   private activeAmbient: ActiveAmbient[] = [];
   private isNight = false;
+  private hour = 12;
 
   constructor(private readonly audio: AudioManager) {}
 
@@ -25,8 +27,18 @@ export class AmbientManager {
     this.crossfadeToDistrict(district);
   }
 
+  onTimeChange(hour: number, isNight: boolean): void {
+    this.hour = hour;
+    const nightChanged = this.isNight !== isNight;
+    this.isNight = isNight;
+
+    if (nightChanged && this.currentDistrict !== null) {
+      this.refreshTimeLayers();
+    }
+  }
+
   update(_dt: number): void {
-    // Ambient loops are self-sustaining.
+    // Ambient loops are self-sustaining; time layers refresh on events.
   }
 
   dispose(): void {
@@ -41,14 +53,49 @@ export class AmbientManager {
 
     const zone = getAmbientZone(district);
     const sounds = zone?.sounds ?? [];
+    const timeLayers = this.getTimeLayers();
 
     window.setTimeout(() => {
       this.stopList(previous);
       this.activeAmbient = [];
-      for (const sound of sounds) {
+      for (const sound of [...sounds, ...timeLayers]) {
         this.fadeInAmbient(sound, 2000);
       }
     }, 2000);
+  }
+
+  private refreshTimeLayers(): void {
+    const toRemove = this.activeAmbient.filter((ambient) =>
+      this.isTimeLayerPath(ambient.path),
+    );
+
+    this.fadeOutList(toRemove, 1500);
+    window.setTimeout(() => {
+      this.stopList(toRemove);
+      this.activeAmbient = this.activeAmbient.filter((ambient) => !toRemove.includes(ambient));
+      for (const layer of this.getTimeLayers()) {
+        if (!this.activeAmbient.some((ambient) => ambient.path === layer.path)) {
+          this.fadeInAmbient(layer, 1500);
+        }
+      }
+    }, 1500);
+  }
+
+  private getTimeLayers(): AmbientSoundDef[] {
+    const layers: AmbientSoundDef[] = [];
+    if (this.isNight) {
+      layers.push(TIME_AMBIENT_LAYERS.crickets);
+    }
+    if (this.hour >= 5 && this.hour <= 8) {
+      layers.push(TIME_AMBIENT_LAYERS.birds);
+    }
+    return layers;
+  }
+
+  private isTimeLayerPath(path: string): boolean {
+    return (
+      path === TIME_AMBIENT_LAYERS.crickets.path || path === TIME_AMBIENT_LAYERS.birds.path
+    );
   }
 
   private fadeInAmbient(def: AmbientSoundDef, duration: number): void {
