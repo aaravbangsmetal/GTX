@@ -67,4 +67,11 @@ export class TrimeshBuilder {
     this.chunkBodies.set(data.chunkId, body);
     return body;
   }
+
+  removeChunk(chunkId: string): void {
+    const body = this.chunkBodies.get(chunkId);
+    if (!body) return;
+    this.bodyFactory.removeBody(body);
+    this.chunkBodies.delete(chunkId);
+  }
 }
