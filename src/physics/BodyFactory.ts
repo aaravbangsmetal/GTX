@@ -3,6 +3,7 @@ import type { Quat } from '../shared/types';
 import { getPhysicsMaterial } from './PhysicsMaterial';
 import type {
   BodyFactoryBoxConfig,
+  BodyFactoryCapsuleConfig,
   BodyFactorySphereConfig,
 } from './types';
 
@@ -61,6 +62,41 @@ export class BodyFactory {
     });
 
     body.addShape(shape);
+    this.world.addBody(body);
+    return body;
+  }
+
+  createCapsule(config: BodyFactoryCapsuleConfig): CANNON.Body {
+    const cylinderHeight = Math.max(config.height - config.radius * 2, 0.01);
+    const body = new CANNON.Body({
+      mass: config.mass,
+      position: toCannonVec3(config.position),
+      collisionFilterGroup: config.group,
+      collisionFilterMask: config.mask,
+      material: getPhysicsMaterial(config.material),
+      type: bodyTypeFromMass(config.mass),
+    });
+
+    const cylinder = new CANNON.Cylinder(
+      config.radius,
+      config.radius,
+      cylinderHeight,
+      12,
+    );
+    cylinder.collisionFilterGroup = config.group;
+    cylinder.collisionFilterMask = config.mask;
+    body.addShape(cylinder);
+
+    const topSphere = new CANNON.Sphere(config.radius);
+    topSphere.collisionFilterGroup = config.group;
+    topSphere.collisionFilterMask = config.mask;
+    body.addShape(topSphere, new CANNON.Vec3(0, cylinderHeight / 2 + config.radius, 0));
+
+    const bottomSphere = new CANNON.Sphere(config.radius);
+    bottomSphere.collisionFilterGroup = config.group;
+    bottomSphere.collisionFilterMask = config.mask;
+    body.addShape(bottomSphere, new CANNON.Vec3(0, -(cylinderHeight / 2 + config.radius), 0));
+
     this.world.addBody(body);
     return body;
   }
