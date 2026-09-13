@@ -46,11 +46,20 @@ export class InputManager {
   }
 
   update(): InputState {
+    this.pollGamepad();
+    return { ...this.state, mouseX: 0, mouseY: 0, scrollDelta: 0 };
+  }
+
+  readCameraInput(): Pick<InputState, 'mouseX' | 'mouseY' | 'scrollDelta'> {
+    const input = {
+      mouseX: this.state.mouseX,
+      mouseY: this.state.mouseY,
+      scrollDelta: this.state.scrollDelta,
+    };
     this.state.mouseX = 0;
     this.state.mouseY = 0;
     this.state.scrollDelta = 0;
-    this.pollGamepad();
-    return { ...this.state };
+    return input;
   }
 
   isPointerLocked(): boolean {

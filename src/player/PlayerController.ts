@@ -1,18 +1,17 @@
 import type { EventBus } from '../shared/events';
 import { normalize3, vec3 } from '../shared/math';
-import type { EntityId } from '../shared/types';
 import { InputManager } from './InputManager';
 import { PlayerAnimator } from './PlayerAnimator';
 import { PlayerPhysics } from './PlayerPhysics';
 import { PlayerStateManager } from './PlayerState';
 import { ThirdPersonCamera } from './ThirdPersonCamera';
 import { addVec3, lengthVec3, subVec3 } from './vec3-utils';
-import type { PlayerConfig } from './types';
+import type { InputState, PlayerConfig } from './types';
 import { PlayerMode } from './types';
 
 export class PlayerController {
   private interactCooldown = 0;
-
+  private lastInput: InputState | null = null;
   constructor(
     private input: InputManager,
     private physics: PlayerPhysics,
@@ -21,13 +20,13 @@ export class PlayerController {
     private state: PlayerStateManager,
     private config: PlayerConfig,
     private events: EventBus,
-    private entityId: EntityId,
   ) {}
 
   update(dt: number): void {
     if (this.state.getMode() !== PlayerMode.ON_FOOT) return;
 
     const input = this.input.update();
+    this.lastInput = input;
     const pos = this.physics.getPosition();
     const yaw = this.camera.getYaw();
 
@@ -47,7 +46,6 @@ export class PlayerController {
       : moving
         ? this.config.runSpeed
         : 0;
-
     this.physics.applyMovement(moveDir, speed, dt);
 
     if (input.jump) {
@@ -57,7 +55,6 @@ export class PlayerController {
     const grounded = this.physics.checkGrounded();
     const velocity = this.physics.getVelocity();
 
-    this.camera.update(pos, input, dt);
     this.animator.update(dt, speed, grounded, velocity.y);
 
     this.state.setPosition(pos);
@@ -65,6 +62,43 @@ export class PlayerController {
       position: { ...pos },
       velocity: { ...velocity },
       isGrounded: grounded,
+    });
+
+    this.interactCooldown = Math.max(0, this.interactCooldown - dt);
+    if (input.interact && this.interactCooldown <= 0) {
+      this.tryEnterVehicle();
+      this.interactCooldown = 0.35;
+    }
+
+    if (input.enterPassenger && this.interactCooldown <= 0) {
+      this.events.emit('player:interactPrompt', {
+        text: 'Enter as passenger',
+        targetId: null,
+      });
+      this.interactCooldown = 0.35;
+    }
+  }
+
+  updateCamera(dt: number): void {
+    if (this.state.getMode() !== PlayerMode.ON_FOOT) return;
+    const pos = this.physics.getPosition();
+    const movement = this.lastInput ?? this.input.update();
+    const cameraInput = this.input.readCameraInput();
+    this.camera.update(pos, { ...movement, ...cameraInput }, dt);
+  }
+
+  getCamera(): ThirdPersonCamera {
+    return this.camera;
+  }
+
+  getAnimator(): PlayerAnimator {
+    return this.animator;
+  }
+
+  private tryEnterVehicle(): void {
+    this.events.emit('player:interactPrompt', {
+      text: 'Press E to enter vehicle',
+      targetId: null,
     });
   }
 }
