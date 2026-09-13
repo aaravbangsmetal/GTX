@@ -42,12 +42,14 @@ export class InputManager {
     this.bindKeyboard();
     this.bindPointerLock();
     this.bindMouse();
+    this.bindGamepad();
   }
 
   update(): InputState {
     this.state.mouseX = 0;
     this.state.mouseY = 0;
     this.state.scrollDelta = 0;
+    this.pollGamepad();
     return { ...this.state };
   }
 
@@ -196,6 +198,39 @@ export class InputManager {
     if (e.button === 0) this.state.attack = false;
     if (e.button === 2) this.state.aim = false;
   };
+
+  private bindGamepad(): void {
+    window.addEventListener('gamepadconnected', (e) => {
+      this.gamepadIndex = e.gamepad.index;
+    });
+    window.addEventListener('gamepaddisconnected', () => {
+      this.gamepadIndex = null;
+    });
+  }
+
+  private pollGamepad(): void {
+    if (this.gamepadIndex === null) return;
+    const pad = navigator.getGamepads()[this.gamepadIndex];
+    if (!pad) return;
+
+    const lx = pad.axes[0] ?? 0;
+    const ly = pad.axes[1] ?? 0;
+    const rx = pad.axes[2] ?? 0;
+    const ry = pad.axes[3] ?? 0;
+    const threshold = 0.2;
+
+    this.state.forward = ly < -threshold;
+    this.state.backward = ly > threshold;
+    this.state.left = lx < -threshold;
+    this.state.right = lx > threshold;
+
+    if (Math.abs(rx) > threshold) this.state.mouseX += rx * 4;
+    if (Math.abs(ry) > threshold) this.state.mouseY += ry * 4;
+
+    this.state.jump = pad.buttons[0]?.pressed ?? false;
+    this.state.interact = pad.buttons[2]?.pressed ?? false;
+    this.state.sprint = (pad.buttons[7]?.value ?? 0) > 0.5;
+  }
 
   private releaseAllKeys(): void {
     this.state.forward = false;
