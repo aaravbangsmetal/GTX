@@ -66,6 +66,10 @@ export class AISystem implements System {
     ctx.events.on('player:move', (payload) => {
       this.playerPos = payload.position;
     });
+
+    ctx.events.once('player:spawn', (payload) => {
+      this.playerPos = payload.position;
+    });
   }
 
   fixedUpdate(dt: number): void {
