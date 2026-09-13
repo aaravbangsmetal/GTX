@@ -63,6 +63,7 @@ export class TrimeshBuilder {
       group: CollisionGroup.STATIC,
       mask: COLLISION_MASKS.STATIC,
     });
+    this.physicsWorld.world.addBody(body);
 
     this.chunkBodies.set(data.chunkId, body);
     return body;

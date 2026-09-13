@@ -27,7 +27,7 @@ export class PhysicsWorld {
       this.world.broadphase = new CANNON.NaiveBroadphase();
     }
 
-    this.world.solver.iterations = config.solverIterations;
+    (this.world.solver as { iterations: number }).iterations = config.solverIterations;
   }
 
   setContactListener(listener: ContactListener | null): void {

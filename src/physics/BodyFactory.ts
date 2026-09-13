@@ -45,7 +45,6 @@ export class BodyFactory {
     });
 
     body.addShape(shape);
-    this.world.addBody(body);
     return body;
   }
 
@@ -64,7 +63,6 @@ export class BodyFactory {
     });
 
     body.addShape(shape);
-    this.world.addBody(body);
     return body;
   }
 
@@ -99,7 +97,6 @@ export class BodyFactory {
     bottomSphere.collisionFilterMask = config.mask;
     body.addShape(bottomSphere, new CANNON.Vec3(0, -(cylinderHeight / 2 + config.radius), 0));
 
-    this.world.addBody(body);
     return body;
   }
 
@@ -119,7 +116,6 @@ export class BodyFactory {
     });
 
     body.addShape(shape);
-    this.world.addBody(body);
     return body;
   }
 
@@ -143,7 +139,6 @@ export class BodyFactory {
     });
 
     body.addShape(shape);
-    this.world.addBody(body);
     return body;
   }
 
