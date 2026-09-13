@@ -39,16 +39,40 @@ export class ThirdPersonCamera {
       playerPos.z + offsetZ,
     );
 
+    const finalPos = this.resolveCollision(playerPos, desiredPos);
+
     if (!this.initialized) {
-      this.currentPosition.copy(desiredPos);
+      this.currentPosition.copy(finalPos);
       this.initialized = true;
     } else {
       const t = clamp(dt / 0.1, 0, 1);
-      this.currentPosition.lerp(desiredPos, t);
+      this.currentPosition.lerp(finalPos, t);
     }
 
     this.camera.position.copy(this.currentPosition);
     this.camera.lookAt(playerPos.x, playerPos.y + 1.5, playerPos.z);
+  }
+
+  private resolveCollision(playerPos: Vec3, desiredPos: THREE.Vector3): THREE.Vector3 {
+    const origin = vec3(playerPos.x, playerPos.y + 1.0, playerPos.z);
+    const dir = vec3(
+      desiredPos.x - origin.x,
+      desiredPos.y - origin.y,
+      desiredPos.z - origin.z,
+    );
+    const length = Math.sqrt(dir.x * dir.x + dir.y * dir.y + dir.z * dir.z);
+    if (length < 0.001) return desiredPos;
+
+    const normalized = vec3(dir.x / length, dir.y / length, dir.z / length);
+    const hit = this.physics.raycast(origin, normalized, length, CollisionGroup.STATIC);
+
+    if (!hit) return desiredPos;
+
+    return new THREE.Vector3(
+      hit.point.x - hit.normal.x * 0.3,
+      hit.point.y - hit.normal.y * 0.3,
+      hit.point.z - hit.normal.z * 0.3,
+    );
   }
 
   setDistance(d: number): void {
