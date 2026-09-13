@@ -11,6 +11,8 @@ import type { PlayerConfig } from './types';
 import { PlayerMode } from './types';
 
 export class PlayerController {
+  private interactCooldown = 0;
+
   constructor(
     private input: InputManager,
     private physics: PlayerPhysics,
