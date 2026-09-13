@@ -1,3 +1,5 @@
+import { Howler } from 'howler';
+import { normalize3 } from '../shared/math';
 import type { Vec3 } from '../shared/types';
 import type { AudioManager } from './AudioManager';
 import type { SpatialSound } from './types';
@@ -64,6 +66,18 @@ export class SpatialAudio {
     if (!sound) return;
     sound.position = { ...position };
     sound.howl.pos(position.x, position.y, position.z, sound.soundId);
+  }
+
+  updateListener(position: Vec3, forward: Vec3, up: Vec3): void {
+    Howler.pos(position.x, position.y, position.z);
+    const f = normalize3(forward);
+    const u = normalize3(up);
+    Howler.orientation(f.x, f.y, f.z, u.x, u.y, u.z);
+  }
+
+  update(_dt: number, listenerPos: Vec3, listenerForward: Vec3): void {
+    const up = { x: 0, y: 1, z: 0 };
+    this.updateListener(listenerPos, listenerForward, up);
   }
 
   dispose(): void {
