@@ -4,10 +4,7 @@ import type { AudioManager } from './AudioManager';
 
 export class MusicPlayer {
   private currentTrack: Howl | null = null;
-  private currentPath: string | null = null;
   private currentSoundId = -1;
-  private readonly playlist = [MUSIC_TRACKS.day, MUSIC_TRACKS.night];
-  private trackIndex = 0;
   private isNight = false;
   private started = false;
   private targetVolume = 1;
@@ -25,7 +22,6 @@ export class MusicPlayer {
       this.currentTrack.stop(this.currentSoundId);
     }
     this.currentTrack = null;
-    this.currentPath = null;
     this.currentSoundId = -1;
     this.started = false;
   }
@@ -76,8 +72,6 @@ export class MusicPlayer {
     howl.loop(loop, soundId);
 
     this.currentTrack = howl;
-    this.currentPath = path;
     this.currentSoundId = soundId;
-    this.trackIndex = this.playlist.indexOf(path as (typeof this.playlist)[number]);
   }
 }

@@ -8,7 +8,6 @@ export class RadioSystem {
   private currentStationIndex = 0;
   private currentTrackIndex = 0;
   private currentTrack: Howl | null = null;
-  private currentPath: string | null = null;
   private currentSoundId = -1;
   private active = false;
   private events: EventBus | null = null;
@@ -103,7 +102,6 @@ export class RadioSystem {
     howl.once('end', () => this.onTrackEnd(), soundId);
 
     this.currentTrack = howl;
-    this.currentPath = path;
     this.currentSoundId = soundId;
   }
 
@@ -120,7 +118,6 @@ export class RadioSystem {
       this.currentTrack.stop(this.currentSoundId);
     }
     this.currentTrack = null;
-    this.currentPath = null;
     this.currentSoundId = -1;
   }
 

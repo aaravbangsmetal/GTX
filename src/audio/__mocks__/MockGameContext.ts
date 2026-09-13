@@ -5,7 +5,7 @@ import { EventBus } from '../../shared/events';
 import { PLAYER_SPAWN } from '../../shared/constants';
 import type { IPlayerService, IRendererService } from '../../shared/services';
 import type { GameContext, System, Vec3 } from '../../shared/types';
-import { PerspectiveCamera } from 'three';
+import { Material, PerspectiveCamera, Scene, WebGLRenderer } from 'three';
 
 class MockPlayerService implements IPlayerService {
   private position: Vec3 = { ...PLAYER_SPAWN };
@@ -43,7 +43,7 @@ class MockPlayerService implements IPlayerService {
 class MockRendererService implements IRendererService {
   private readonly camera = new PerspectiveCamera(60, 1, 0.1, 2000);
 
-  getScene() {
+  getScene(): Scene {
     throw new Error('MockRendererService: scene not available');
   }
 
@@ -51,7 +51,7 @@ class MockRendererService implements IRendererService {
     return this.camera;
   }
 
-  getRenderer() {
+  getRenderer(): WebGLRenderer {
     throw new Error('MockRendererService: renderer not available');
   }
 
@@ -63,7 +63,7 @@ class MockRendererService implements IRendererService {
     // noop
   }
 
-  getMaterial() {
+  getMaterial(_id: string): Material {
     throw new Error('MockRendererService: material not available');
   }
 
