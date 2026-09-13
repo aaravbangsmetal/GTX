@@ -56,4 +56,35 @@ export class WheelRaycaster {
     const point = new CANNON.Vec3(worldPos.x, worldPos.y, worldPos.z);
     chassisBody.applyForce(force, point);
   }
+
+  applyEngineForce(
+    wheel: WheelInfo,
+    force: number,
+    chassisBody: CANNON.Body,
+    chassisQuat: Quat,
+    grip: number,
+  ): void {
+    if (!wheel.isGrounded || force === 0) return;
+
+    let forward = rotateVecByQuat({ x: 0, y: 0, z: -1 }, chassisQuat);
+    if (wheel.isFront && wheel.steerAngle !== 0) {
+      const cos = Math.cos(wheel.steerAngle);
+      const sin = Math.sin(wheel.steerAngle);
+      const fx = forward.x * cos - forward.z * sin;
+      const fz = forward.x * sin + forward.z * cos;
+      forward = { x: fx, y: forward.y, z: fz };
+    }
+
+    const worldPos = addVec3(
+      { x: chassisBody.position.x, y: chassisBody.position.y, z: chassisBody.position.z },
+      rotateVecByQuat(wheel.position, chassisQuat),
+    );
+
+    const impulse = new CANNON.Vec3(
+      forward.x * force * grip,
+      forward.y * force * grip,
+      forward.z * force * grip,
+    );
+    chassisBody.applyForce(impulse, new CANNON.Vec3(worldPos.x, worldPos.y, worldPos.z));
+  }
 }
