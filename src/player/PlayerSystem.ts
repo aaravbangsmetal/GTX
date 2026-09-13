@@ -32,12 +32,14 @@ export class PlayerSystem implements System, IPlayerService {
     this.ctx = ctx;
     this.entityId = ctx.entities.createEntity();
 
-    const renderer = ctx.getSystem('renderer') as IRendererService;
-    this.physicsService = asPlayerPhysics(ctx.getSystem('physics') as PlayerPhysicsService);
+    const renderer = ctx.getSystem('renderer') as unknown as IRendererService;
+    this.physicsService = asPlayerPhysics(
+      ctx.getSystem('physics') as unknown as PlayerPhysicsService,
+    );
 
     let spawnPos: Vec3 = { ...PLAYER_SPAWN };
     try {
-      const world = ctx.getSystem('world') as IWorldService;
+      const world = ctx.getSystem('world') as unknown as IWorldService;
       spawnPos = world.getSpawnPoint('player');
     } catch {
       spawnPos = { ...PLAYER_SPAWN };

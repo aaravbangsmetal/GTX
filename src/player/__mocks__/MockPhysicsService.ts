@@ -36,13 +36,17 @@ class MockBodyMeshSync implements BodyMeshSyncBridge {
 
 let nextBodyId = 1;
 
-export function createMockPhysicsService(): PlayerPhysicsService {
+export interface MockPhysicsService extends PlayerPhysicsService {
+  step(dt: number): void;
+}
+
+export function createMockPhysicsService(): MockPhysicsService {
   const bodies = new Map<number, MockBody>();
   const meshSync = new MockBodyMeshSync();
 
   const groundY = 0;
 
-  const service: PlayerPhysicsService = {
+  const service: MockPhysicsService = {
     createBody(config: BodyConfig): number {
       const bodyId = nextBodyId++;
       bodies.set(bodyId, {
