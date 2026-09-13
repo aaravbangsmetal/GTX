@@ -4,6 +4,7 @@ import { vec3 } from '../shared/math';
 import type { EntityId, GameContext, System, Vec3 } from '../shared/types';
 import { AmbientManager } from './AmbientManager';
 import { AudioManager } from './AudioManager';
+import { FootstepController } from './FootstepController';
 import { MusicPlayer } from './MusicPlayer';
 import { RadioSystem } from './RadioSystem';
 import { SFXLibrary } from './SFXLibrary';
@@ -33,6 +34,7 @@ export class AudioSystem implements System {
   private ambient!: AmbientManager;
   private sfx!: SFXLibrary;
   private spatial!: SpatialAudio;
+  private footsteps!: FootstepController;
   private readonly engineSounds = new Map<EntityId, string>();
 
   async init(ctx: GameContext): Promise<void> {
@@ -51,7 +53,6 @@ export class AudioSystem implements System {
     this.sfx.bindEvents(ctx.events);
     this.footsteps = new FootstepController(this.sfx);
     this.footsteps.bindEvents(ctx.events);
-
     this.bindEvents(ctx.events);
     this.bindRadioInput();
   }
