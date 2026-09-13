@@ -1,7 +1,5 @@
 import * as THREE from 'three';
 import type { DayNightState, IRendererService } from '../../shared/services';
-import type { Vec3 } from '../../shared/types';
-
 export function createMockRendererService(): IRendererService {
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 2000);
@@ -29,11 +27,5 @@ export function createMockRendererService(): IRendererService {
       isNight: false,
       bloomStrength: 0.3,
     }),
-    setCameraPosition: (pos: Vec3) => {
-      camera.position.set(pos.x, pos.y, pos.z);
-    },
-    lookAt: (target: Vec3) => {
-      camera.lookAt(target.x, target.y, target.z);
-    },
   };
 }
