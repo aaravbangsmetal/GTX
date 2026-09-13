@@ -1,5 +1,13 @@
 import type { IPhysicsService, IWorldService } from '../shared/services';
-import type { BodyConfig, GameContext, RaycastHit, System, Transform, Vec3 } from '../shared/types';
+import type {
+  BodyConfig,
+  EntityId,
+  GameContext,
+  RaycastHit,
+  System,
+  Transform,
+  Vec3,
+} from '../shared/types';
 import { vec3 } from '../shared/math';
 import { BodyFactory } from './BodyFactory';
 import { BodyMeshSync } from './BodyMeshSync';
@@ -20,6 +28,7 @@ export class PhysicsSystem implements System, IPhysicsService {
   private bodyMeshSync = new BodyMeshSync();
   private constraints!: ConstraintManager;
   private groundBodyId: number | null = null;
+  private readonly bodyIdToEntity = new Map<number, EntityId>();
 
   async init(ctx: GameContext): Promise<void> {
     this.ctx = ctx;
@@ -45,10 +54,14 @@ export class PhysicsSystem implements System, IPhysicsService {
         impulse: event.impulse,
       });
     });
+    this.bindChunkEvents();
     this.createGroundPlane();
   }
 
-  fixedUpdate(_dt: number): void {}
+  fixedUpdate(dt: number): void {
+    this.physicsWorld.step(dt);
+    this.bodyMeshSync.sync();
+  }
 
   update(_dt: number): void {}
 
@@ -59,30 +72,106 @@ export class PhysicsSystem implements System, IPhysicsService {
     }
   }
 
-  createBody(_config: BodyConfig): number {
-    return 0;
+  createBody(config: BodyConfig): number {
+    const entityId = this.ctx.entities.createEntity();
+    let body;
+
+    switch (config.shape) {
+      case 'box':
+        body = this.bodyFactory.createBox({
+          dimensions: config.dimensions,
+          mass: config.mass,
+          position: config.position,
+          group: config.collisionGroup,
+          mask: config.collisionMask,
+        });
+        break;
+      case 'sphere':
+        body = this.bodyFactory.createSphere({
+          radius: config.dimensions.x,
+          mass: config.mass,
+          position: config.position,
+          group: config.collisionGroup,
+          mask: config.collisionMask,
+        });
+        break;
+      case 'capsule':
+        body = this.bodyFactory.createCapsule({
+          radius: config.dimensions.x,
+          height: config.dimensions.y,
+          mass: config.mass,
+          position: config.position,
+          group: config.collisionGroup,
+          mask: config.collisionMask,
+        });
+        break;
+      case 'trimesh':
+        throw new Error('Trimesh bodies are created from world chunk collision data.');
+      default:
+        throw new Error(`Unsupported physics shape: ${config.shape as string}`);
+    }
+
+    const bodyId = this.physicsWorld.addBody(body, entityId);
+    this.bodyIdToEntity.set(bodyId, entityId);
+    this.ctx.events.emit('physics:bodyCreated', { entityId, bodyId });
+    return bodyId;
   }
 
-  removeBody(_bodyId: number): void {}
+  removeBody(bodyId: number): void {
+    const entityId = this.bodyIdToEntity.get(bodyId);
+    if (entityId !== undefined) {
+      this.ctx.entities.destroyEntity(entityId);
+      this.bodyIdToEntity.delete(bodyId);
+    }
+    this.bodyMeshSync.unbind(bodyId);
+    this.physicsWorld.removeBodyById(bodyId);
+  }
 
   raycast(
-    _origin: Vec3,
-    _direction: Vec3,
-    _maxDist: number,
-    _mask?: number,
+    origin: Vec3,
+    direction: Vec3,
+    maxDist: number,
+    mask?: number,
   ): RaycastHit | null {
-    return null;
+    return this.raycaster.cast({
+      origin,
+      direction,
+      maxDistance: maxDist,
+      collisionMask: mask,
+    });
   }
 
-  getBodyTransform(_bodyId: number): Transform {
+  getBodyTransform(bodyId: number): Transform {
+    const body = this.physicsWorld.getBody(bodyId);
     return {
-      position: vec3(),
-      rotation: { x: 0, y: 0, z: 0, w: 1 },
+      position: {
+        x: body.position.x,
+        y: body.position.y,
+        z: body.position.z,
+      },
+      rotation: {
+        x: body.quaternion.x,
+        y: body.quaternion.y,
+        z: body.quaternion.z,
+        w: body.quaternion.w,
+      },
       scale: vec3(1, 1, 1),
     };
   }
 
-  setBodyTransform(_bodyId: number, _transform: Transform): void {}
+  setBodyTransform(bodyId: number, transform: Transform): void {
+    const body = this.physicsWorld.getBody(bodyId);
+    body.position.set(transform.position.x, transform.position.y, transform.position.z);
+    body.quaternion.set(
+      transform.rotation.x,
+      transform.rotation.y,
+      transform.rotation.z,
+      transform.rotation.w,
+    );
+    body.velocity.set(0, 0, 0);
+    body.angularVelocity.set(0, 0, 0);
+    body.wakeUp();
+  }
 
   getBodyMeshSync(): BodyMeshSync {
     return this.bodyMeshSync;
@@ -90,6 +179,22 @@ export class PhysicsSystem implements System, IPhysicsService {
 
   getConstraintManager(): ConstraintManager {
     return this.constraints;
+  }
+
+  private bindChunkEvents(): void {
+    this.ctx.events.on('world:chunkLoaded', ({ chunkId }) => {
+      try {
+        const world = this.ctx.getSystem('world') as unknown as IWorldService;
+        const data = world.getCollisionData(chunkId);
+        this.trimeshBuilder.buildFromChunkData(data);
+      } catch {
+        // World service unavailable during standalone physics tests.
+      }
+    });
+
+    this.ctx.events.on('world:chunkUnloaded', ({ chunkId }) => {
+      this.trimeshBuilder.removeChunk(chunkId);
+    });
   }
 
   private createGroundPlane(): void {
@@ -103,5 +208,10 @@ export class PhysicsSystem implements System, IPhysicsService {
     });
     const entityId = this.ctx.entities.createEntity();
     this.groundBodyId = this.physicsWorld.addBody(ground, entityId);
+    this.bodyIdToEntity.set(this.groundBodyId, entityId);
+  }
+
+  getEntityIdForBody(bodyId: number): EntityId | undefined {
+    return this.bodyIdToEntity.get(bodyId);
   }
 }
