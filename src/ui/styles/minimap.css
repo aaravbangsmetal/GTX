@@ -1,0 +1,32 @@
+.minimap-container {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 100;
+  pointer-events: none;
+}
+
+.minimap-container.hidden {
+  display: none;
+}
+
+.minimap-canvas {
+  display: block;
+  width: 150px;
+  height: 150px;
+  border: 2px solid #ff6b9d;
+  border-radius: 8px;
+  box-shadow: 0 0 12px rgba(255, 107, 157, 0.4);
+  background: rgba(10, 10, 15, 0.85);
+}
+
+.minimap-north {
+  position: absolute;
+  top: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Orbitron', monospace;
+  font-size: 10px;
+  color: #2dd4bf;
+  text-shadow: 0 0 4px rgba(45, 212, 191, 0.8);
+}

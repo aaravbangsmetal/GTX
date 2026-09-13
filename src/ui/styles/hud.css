@@ -1,0 +1,218 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Press+Start+2P&display=swap');
+
+.hud-container {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+  z-index: 100;
+  padding: 16px;
+  transform-origin: bottom left;
+}
+
+.hud-bottom-left {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.health-bar,
+.armor-bar {
+  width: 150px;
+  height: 12px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 2px solid #ff6b9d;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.health-bar .fill {
+  background: linear-gradient(90deg, #ff4444, #ff6b9d);
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.armor-bar .fill {
+  background: linear-gradient(90deg, #4488ff, #2dd4bf);
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.armor-bar.hidden {
+  display: none;
+}
+
+.money {
+  font-family: 'Orbitron', monospace;
+  color: #44ff44;
+  font-size: 20px;
+  text-shadow: 0 0 8px #44ff44;
+  margin-top: 4px;
+}
+
+.weapon-icon {
+  width: 32px;
+  height: 32px;
+  margin-top: 4px;
+  filter: drop-shadow(0 0 4px rgba(45, 212, 191, 0.6));
+}
+
+.weapon-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.weapon-icon.hidden {
+  display: none;
+}
+
+.hud-container.hidden {
+  display: none;
+}
+
+.wanted-display {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  z-index: 100;
+  pointer-events: none;
+}
+
+.wanted-star {
+  width: 24px;
+  height: 24px;
+  opacity: 0.25;
+  transition: opacity 0.2s ease;
+}
+
+.wanted-star.active {
+  opacity: 1;
+  filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.8));
+}
+
+.wanted-display.flashing .wanted-star.active {
+  animation: wanted-flash 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes wanted-flash {
+  from {
+    opacity: 0.5;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.speedometer {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 100;
+  pointer-events: none;
+  font-family: 'Orbitron', monospace;
+  font-size: 28px;
+  font-weight: 700;
+  color: #2dd4bf;
+  text-shadow: 0 0 12px rgba(45, 212, 191, 0.6);
+}
+
+.speedometer.hidden {
+  display: none;
+}
+
+.interaction-prompt {
+  position: fixed;
+  bottom: 120px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  pointer-events: none;
+  padding: 10px 20px;
+  border: 2px solid #ff6b9d;
+  border-radius: 4px;
+  background: rgba(10, 10, 15, 0.85);
+  color: #ffffff;
+  font-family: 'Orbitron', monospace;
+  font-size: 14px;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  box-shadow: 0 0 10px rgba(255, 107, 157, 0.5);
+}
+
+.interaction-prompt.visible {
+  opacity: 1;
+}
+
+.interaction-prompt.hidden {
+  display: none;
+}
+
+.mission-text {
+  position: fixed;
+  top: 56px;
+  left: 16px;
+  z-index: 100;
+  pointer-events: none;
+  max-width: 320px;
+}
+
+.mission-text.hidden {
+  display: none;
+}
+
+.mission-title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 11px;
+  color: #ff6b9d;
+  margin-bottom: 8px;
+  line-height: 1.6;
+  text-shadow: 0 0 8px rgba(255, 107, 157, 0.5);
+}
+
+.mission-objective {
+  font-family: 'Orbitron', monospace;
+  font-size: 13px;
+  color: #2dd4bf;
+  line-height: 1.4;
+}
+
+.radio-ui {
+  position: fixed;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  pointer-events: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  background: rgba(10, 10, 15, 0.85);
+  border: 2px solid #ff6b9d;
+  font-family: 'Orbitron', monospace;
+  font-size: 13px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.radio-ui.visible {
+  opacity: 1;
+}
+
+.radio-ui.hidden {
+  display: none;
+}
+
+.radio-station-name {
+  font-weight: 700;
+}
+
+.radio-station-tagline {
+  font-size: 11px;
+  opacity: 0.8;
+  margin-top: 2px;
+}
