@@ -9,10 +9,13 @@ const CLIP_NAMES: Partial<Record<PlayerAnimState, string>> = {
   [PlayerAnimState.FALL]: 'fall',
 };
 
+const CROSSFADE_DURATION = 0.2;
+
 export class PlayerAnimator {
   private currentState = PlayerAnimState.IDLE;
   private actions = new Map<PlayerAnimState, THREE.AnimationAction>();
   private mixer: THREE.AnimationMixer | null = null;
+  private landingTimer = 0;
 
   init(mixer: THREE.AnimationMixer | null, clips: THREE.AnimationClip[]): void {
     this.mixer = mixer;
@@ -46,8 +49,10 @@ export class PlayerAnimator {
       return;
     }
 
-    current?.stop();
-    next.play();
+    if (current) {
+      current.fadeOut(CROSSFADE_DURATION);
+    }
+    next.reset().fadeIn(CROSSFADE_DURATION).play();
     this.currentState = state;
   }
 
@@ -58,6 +63,17 @@ export class PlayerAnimator {
     if (!grounded) {
       this.setState(verticalVelocity > 0.5 ? PlayerAnimState.JUMP : PlayerAnimState.FALL);
       return;
+    }
+
+    if (this.currentState === PlayerAnimState.FALL || this.currentState === PlayerAnimState.JUMP) {
+      this.setState(PlayerAnimState.LAND);
+      this.landingTimer = 0.15;
+      return;
+    }
+
+    if (this.currentState === PlayerAnimState.LAND) {
+      this.landingTimer -= dt;
+      if (this.landingTimer > 0) return;
     }
 
     if (speed > 8) {
