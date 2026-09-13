@@ -87,6 +87,7 @@ export class VehiclePhysics {
   private wheelRaycaster: WheelRaycaster;
   private currentSteer = 0;
   private chassisBody: CANNON.Body | null = null;
+  private gripMultiplier = 1;
 
   constructor(
     private physics: VehiclePhysicsService,
@@ -137,34 +138,46 @@ export class VehiclePhysics {
     const targetSteer = input.steer * this.config.steerSpeed;
     this.currentSteer = lerp(this.currentSteer, targetSteer, clamp(dt * 8, 0, 1));
 
+    const speed = speedFromVelocity({ x: body.velocity.x, y: body.velocity.y, z: body.velocity.z });
+    const speedRatio = clamp(speed / this.config.maxSpeed, 0, 1);
+    const steerScale = 1 - speedRatio * 0.5;
+    const effectiveSteer = this.currentSteer * steerScale;
+
     for (const wheel of this.wheels) {
-      this.wheelRaycaster.applySteering(wheel, wheel.isFront ? this.currentSteer : 0);
+      this.wheelRaycaster.applySteering(wheel, wheel.isFront ? effectiveSteer : 0);
+      if (wheel.isFront) {
+        wheel.steerAngle = effectiveSteer;
+      }
     }
 
+    this.gripMultiplier = input.handbrake ? 0.3 : 1;
     const engineForce = input.throttle * this.config.engineForce;
     for (const wheel of this.wheels) {
       if (!wheel.isFront) {
-        this.wheelRaycaster.applyEngineForce(wheel, engineForce, body, chassisQuat, this.config.grip);
+        const grip = this.config.grip * this.gripMultiplier;
+        this.wheelRaycaster.applyEngineForce(wheel, engineForce, body, chassisQuat, grip);
       }
     }
 
-    if (input.brake) {
+    if (input.brake || (input.throttle === 0 && speed < 1)) {
+      const brakeAmount = input.brake ? this.config.brakeForce : this.config.brakeForce * 0.3;
       for (const wheel of this.wheels) {
-        this.wheelRaycaster.applyBrakeForce(
-          wheel,
-          this.config.brakeForce,
-          body,
-          chassisQuat,
-          this.config.grip,
-        );
+        const grip = input.handbrake && !wheel.isFront
+          ? this.config.grip * 0.3
+          : this.config.grip;
+        this.wheelRaycaster.applyBrakeForce(wheel, brakeAmount, body, chassisQuat, grip);
       }
     }
 
-    const speed = speedFromVelocity({ x: body.velocity.x, y: body.velocity.y, z: body.velocity.z });
     if (speed > this.config.maxSpeed) {
       const scale = this.config.maxSpeed / speed;
       body.velocity.x *= scale;
       body.velocity.z *= scale;
+    }
+
+    const wheelSpin = speed / this.config.wheelRadius;
+    for (const wheel of this.wheels) {
+      wheel.spinAngle += wheelSpin * dt;
     }
 
     const speedKmh = speed * 3.6;
@@ -182,6 +195,26 @@ export class VehiclePhysics {
       x: this.chassisBody.velocity.x,
       y: this.chassisBody.velocity.y,
       z: this.chassisBody.velocity.z,
+    });
+  }
+
+  getSpeedKmh(): number {
+    return this.getSpeed() * 3.6;
+  }
+
+  applyImpulse(impulse: Vec3, point: Vec3): void {
+    if (!this.chassisBody) return;
+    this.chassisBody.applyImpulse(
+      new CANNON.Vec3(impulse.x, impulse.y, impulse.z),
+      new CANNON.Vec3(point.x, point.y, point.z),
+    );
+  }
+
+  setPosition(position: Vec3, heading: number): void {
+    this.physics.setBodyTransform(this.bodyId, {
+      position,
+      rotation: quatFromHeading(heading),
+      scale: { x: 1, y: 1, z: 1 },
     });
   }
 
