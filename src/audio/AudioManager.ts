@@ -1,6 +1,7 @@
 import { Howl, Howler } from 'howler';
 import { DEFAULT_VOLUMES } from './AudioConfig';
-import type { AudioGroup, AudioGroupVolumes } from './types';
+import { ProceduralAudio } from './ProceduralAudio';
+import type { AudioGroup, AudioGroupVolumes, PlayOptions } from './types';
 
 interface LoadedSound {
   howl: Howl;
@@ -67,5 +68,126 @@ export class AudioManager {
     for (const { howl, group } of this.sounds.values()) {
       howl.volume(this.effectiveVolume(group));
     }
+  }
+
+  loadSound(path: string, group: AudioGroup, options?: { loop?: boolean; spatial?: boolean }): Howl {
+    const cached = this.sounds.get(path);
+    if (cached) {
+      return cached.howl;
+    }
+
+    const spatial = options?.spatial ?? false;
+    const howl = new Howl({
+      src: [path],
+      loop: options?.loop ?? false,
+      volume: this.effectiveVolume(group),
+      preload: true,
+      html5: false,
+      onloaderror: () => {
+        const fallback = ProceduralAudio.createForPath(path);
+        fallback.volume(this.effectiveVolume(group));
+        this.sounds.set(path, { howl: fallback, group });
+      },
+      ...(spatial
+        ? {
+            onload: () => {
+              howl.pannerAttr({
+                panningModel: 'equalpower',
+                refDistance: 1,
+                maxDistance: 50,
+                rolloffFactor: 1,
+              });
+            },
+          }
+        : {}),
+    });
+
+    this.sounds.set(path, { howl, group });
+    return howl;
+  }
+
+  play(path: string, group: AudioGroup, options?: PlayOptions): number {
+    const howl = this.loadSound(path, group, {
+      loop: options?.loop,
+      spatial: options?.spatial,
+    });
+
+    const volume = this.effectiveVolume(group, options?.volume ?? 1);
+    const soundId = howl.play();
+
+    if (soundId !== undefined) {
+      howl.volume(volume, soundId);
+      if (options?.spatial && options.position) {
+        howl.pos(options.position.x, options.position.y, options.position.z, soundId);
+        howl.pannerAttr(
+          {
+            refDistance: options.refDistance ?? 1,
+            maxDistance: options.maxDistance ?? 50,
+          },
+          soundId,
+        );
+      }
+    }
+
+    return soundId ?? -1;
+  }
+
+  stop(soundId: number, path?: string): void {
+    if (soundId < 0) return;
+    if (path) {
+      const loaded = this.sounds.get(path);
+      loaded?.howl.stop(soundId);
+      return;
+    }
+    for (const { howl } of this.sounds.values()) {
+      howl.stop(soundId);
+    }
+  }
+
+  stopPath(path: string): void {
+    const loaded = this.sounds.get(path);
+    loaded?.howl.stop();
+  }
+
+  fade(soundId: number, from: number, to: number, duration: number, path?: string): void {
+    if (soundId < 0) return;
+    const howl = path ? this.sounds.get(path)?.howl : this.findHowlBySoundId(soundId);
+    if (!howl) return;
+    howl.fade(from, to, duration, soundId);
+  }
+
+  fadePath(path: string, from: number, to: number, duration: number): void {
+    const loaded = this.sounds.get(path);
+    if (!loaded) return;
+    loaded.howl.fade(from, to, duration);
+  }
+
+  private findHowlBySoundId(soundId: number): Howl | null {
+    for (const { howl } of this.sounds.values()) {
+      if (howl.playing(soundId)) {
+        return howl;
+      }
+    }
+    return null;
+  }
+
+  pauseAll(): void {
+    if (this.paused) return;
+    this.paused = true;
+    Howler.mute(true);
+  }
+
+  resumeAll(): void {
+    if (!this.paused) return;
+    this.paused = false;
+    Howler.mute(false);
+  }
+
+  dispose(): void {
+    for (const { howl } of this.sounds.values()) {
+      howl.unload();
+    }
+    this.sounds.clear();
+    Howler.unload();
   }
 }
