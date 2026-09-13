@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { PLAYER_SPAWN } from '../shared/constants';
-import type { IRendererService, IWorldService } from '../shared/services';
-import type { EntityId, GameContext, System, Vec3 } from '../shared/types';
+import type { IPlayerService, IRendererService, IWorldService } from '../shared/services';
+import type { EntityId, GameContext, PlayerStateSnapshot, System, Vec3 } from '../shared/types';
 import { DEFAULT_PLAYER_CONFIG } from './PlayerConfig';
 import { PlayerController } from './PlayerController';
 import { InputManager } from './InputManager';
@@ -11,8 +11,9 @@ import { PlayerPhysics } from './PlayerPhysics';
 import { PlayerStateManager } from './PlayerState';
 import { ThirdPersonCamera } from './ThirdPersonCamera';
 import { asPlayerPhysics, type PlayerPhysicsService } from './physics-bridge';
+import { PlayerMode } from './types';
 
-export class PlayerSystem implements System {
+export class PlayerSystem implements System, IPlayerService {
   readonly name = 'player' as const;
 
   private ctx!: GameContext;
@@ -79,16 +80,64 @@ export class PlayerSystem implements System {
     this.state.setPosition(spawnPos);
     ctx.events.emit('player:spawn', { entityId: this.entityId, position: spawnPos });
     ctx.events.emit('player:stateChange', { state: this.state.getSnapshot() });
+
+    this.bindVehicleEvents();
+  }
+
+  private bindVehicleEvents(): void {
+    this.ctx.events.on('player:enterVehicle', ({ playerId, vehicleId, seat }) => {
+      if (playerId !== this.entityId) return;
+
+      const mode =
+        seat === 'driver' ? PlayerMode.IN_VEHICLE_DRIVER : PlayerMode.IN_VEHICLE_PASSENGER;
+      this.state.setMode(mode, vehicleId);
+      this.model.setVisible(false);
+      this.physics.setEnabled(false);
+    });
+
+    this.ctx.events.on('player:exitVehicle', ({ playerId, position }) => {
+      if (playerId !== this.entityId) return;
+
+      this.state.setMode(PlayerMode.ON_FOOT);
+      this.physics.setEnabled(true);
+      this.physics.teleport(position);
+      this.model.setVisible(true);
+      this.state.setPosition(position);
+    });
   }
 
   fixedUpdate(dt: number): void {
     this.controller.update(dt);
   }
 
-  update(_dt: number): void {}
+  update(dt: number): void {
+    this.controller.updateCamera(dt);
+    this.model.getMixer()?.update(dt);
+  }
 
   dispose(): void {
     this.input.dispose();
     this.model.dispose();
+  }
+
+  getState(): PlayerStateSnapshot {
+    return this.state.getSnapshot();
+  }
+
+  getEntityId(): EntityId {
+    return this.entityId;
+  }
+
+  getPosition(): Vec3 {
+    return this.physics.getPosition();
+  }
+
+  isControllable(): boolean {
+    return this.state.getMode() === PlayerMode.ON_FOOT && this.state.isAlive();
+  }
+
+  teleport(position: Vec3): void {
+    this.physics.teleport(position);
+    this.state.setPosition(position);
   }
 }
