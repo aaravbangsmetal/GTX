@@ -13,6 +13,7 @@ export function createPedestrianBehaviorTree(): BTNode {
         ctx.npc.fleeFrom(ctx.playerPos);
         const dest = ctx.pedPathfinder.getRandomWalkablePoint(ctx.npc.position, 30);
         ctx.npc.path = ctx.pedPathfinder.findPath(ctx.npc.position, dest);
+        ctx.npc.pathIndex = 0;
         return 'success';
       }),
     ]),

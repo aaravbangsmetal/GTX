@@ -105,6 +105,10 @@ export class SpawnManager {
     return this.activeNPCs;
   }
 
+  getNPC(entityId: EntityId): NPC | undefined {
+    return this.activeNPCs.get(entityId);
+  }
+
   getNPCsInRadius(center: Vec3, radius: number): NPC[] {
     const result: NPC[] = [];
     for (const npc of this.activeNPCs.values()) {
@@ -117,9 +121,14 @@ export class SpawnManager {
 
   fleeNPCsInRadius(center: Vec3, radius: number, pedPathfinder: PedestrianPathfinder): void {
     for (const npc of this.getNPCsInRadius(center, radius)) {
-      npc.fleeFrom(center);
-      const dest = pedPathfinder.getRandomWalkablePoint(npc.position, 30);
-      npc.path = pedPathfinder.findPath(npc.position, dest);
+      this.fleeNPC(npc, center, pedPathfinder);
     }
+  }
+
+  fleeNPC(npc: NPC, threatPos: Vec3, pedPathfinder: PedestrianPathfinder): void {
+    npc.fleeFrom(threatPos);
+    const dest = pedPathfinder.getRandomWalkablePoint(npc.position, 30);
+    npc.path = pedPathfinder.findPath(npc.position, dest);
+    npc.pathIndex = 0;
   }
 }
