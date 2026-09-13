@@ -42,6 +42,13 @@ export class ReactionSystem {
     this.bind('wanted:levelChange', (payload) => {
       this.policeAI.onWantedLevelChange(payload.level, this.getPlayerPos());
     });
+
+    this.bind('combat:hit', (payload) => {
+      const npc = this.spawnManager.getNPC(payload.targetId);
+      if (npc) {
+        npc.takeDamage(payload.damage);
+      }
+    });
   }
 
   scatterFromHorn(position: Vec3): void {
