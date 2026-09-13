@@ -1,4 +1,5 @@
-import type { AudioGroupVolumes, RadioStation } from './types';
+import { DistrictId } from '../shared/types';
+import type { AmbientZone, AudioGroupVolumes, RadioStation } from './types';
 
 export const AUDIO_BASE = '/assets/audio';
 
@@ -42,6 +43,34 @@ export const RADIO_STATIONS: RadioStation[] = [
     color: '#44AA44',
   },
 ];
+
+export const AMBIENT_ZONES: AmbientZone[] = [
+  {
+    district: DistrictId.OCEAN_BEACH,
+    sounds: [{ path: `${AUDIO_BASE}/ambient/ocean-waves.mp3`, volume: 0.7, loop: true }],
+  },
+  {
+    district: DistrictId.DOWNTOWN,
+    sounds: [{ path: `${AUDIO_BASE}/ambient/city-hum.mp3`, volume: 0.4, loop: true }],
+  },
+  {
+    district: DistrictId.LITTLE_HAVANA,
+    sounds: [{ path: `${AUDIO_BASE}/ambient/city-hum.mp3`, volume: 0.35, loop: true }],
+  },
+  {
+    district: DistrictId.VICE_PORT,
+    sounds: [{ path: `${AUDIO_BASE}/ambient/industrial.mp3`, volume: 0.5, loop: true }],
+  },
+  {
+    district: DistrictId.STARFISH_ISLAND,
+    sounds: [{ path: `${AUDIO_BASE}/ambient/fountain.mp3`, volume: 0.3, loop: true }],
+  },
+];
+
+export const TIME_AMBIENT_LAYERS = {
+  crickets: { path: `${AUDIO_BASE}/ambient/crickets.mp3`, volume: 0.25, loop: true, nightOnly: true },
+  birds: { path: `${AUDIO_BASE}/ambient/birds.mp3`, volume: 0.2, loop: true, dawnOnly: true },
+} as const;
 
 export const SFX_PATHS = {
   footstepConcrete: `${AUDIO_BASE}/sfx/footstep-concrete.mp3`,
