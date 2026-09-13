@@ -5,6 +5,7 @@ import type {
   BodyFactoryBoxConfig,
   BodyFactoryCapsuleConfig,
   BodyFactorySphereConfig,
+  BodyFactoryTrimeshConfig,
 } from './types';
 
 function toCannonVec3(v: { x: number; y: number; z: number }): CANNON.Vec3 {
@@ -97,6 +98,26 @@ export class BodyFactory {
     bottomSphere.collisionFilterMask = config.mask;
     body.addShape(bottomSphere, new CANNON.Vec3(0, -(cylinderHeight / 2 + config.radius), 0));
 
+    this.world.addBody(body);
+    return body;
+  }
+
+  createTrimesh(config: BodyFactoryTrimeshConfig): CANNON.Body {
+    const vertices = Array.from(config.vertices);
+    const indices = Array.from(config.indices);
+    const shape = new CANNON.Trimesh(vertices, indices);
+    shape.collisionFilterGroup = config.group;
+    shape.collisionFilterMask = config.mask;
+
+    const body = new CANNON.Body({
+      mass: 0,
+      position: toCannonVec3(config.position),
+      collisionFilterGroup: config.group,
+      collisionFilterMask: config.mask,
+      type: CANNON.Body.STATIC,
+    });
+
+    body.addShape(shape);
     this.world.addBody(body);
     return body;
   }
