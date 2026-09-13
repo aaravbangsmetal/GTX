@@ -1,7 +1,7 @@
 import { vec3 } from '../shared/math';
 import type { VehicleTypeConfig, VehicleTypeId } from './types';
 
-export const VEHICLE_TYPES: Partial<Record<VehicleTypeId, VehicleTypeConfig>> = {
+export const VEHICLE_TYPES: Record<VehicleTypeId, VehicleTypeConfig> = {
   sedan: {
     id: 'sedan',
     name: 'Cheetah',
@@ -21,10 +21,84 @@ export const VEHICLE_TYPES: Partial<Record<VehicleTypeId, VehicleTypeConfig>> = 
     modelPath: '/assets/vehicles/models/sedan.glb',
     seatOffset: vec3(-0.4, 0.5, 0.3),
   },
+  sportscar: {
+    id: 'sportscar',
+    name: 'Infernus',
+    mass: 900,
+    maxSpeed: 50,
+    acceleration: 12,
+    brakeForce: 20,
+    steerSpeed: 3.0,
+    grip: 0.95,
+    suspensionStiffness: 35,
+    suspensionDamping: 5.0,
+    suspensionRestLength: 0.28,
+    engineForce: 5000,
+    dimensions: vec3(4.2, 1.2, 1.9),
+    wheelRadius: 0.32,
+    wheelCount: 4,
+    modelPath: '/assets/vehicles/models/sportscar.glb',
+    seatOffset: vec3(-0.35, 0.4, 0.2),
+  },
+  motorcycle: {
+    id: 'motorcycle',
+    name: 'PCJ-600',
+    mass: 200,
+    maxSpeed: 41.7,
+    acceleration: 10,
+    brakeForce: 12,
+    steerSpeed: 3.5,
+    grip: 0.8,
+    suspensionStiffness: 25,
+    suspensionDamping: 3.5,
+    suspensionRestLength: 0.25,
+    engineForce: 2000,
+    dimensions: vec3(2.1, 1.1, 0.8),
+    wheelRadius: 0.3,
+    wheelCount: 2,
+    modelPath: '/assets/vehicles/models/motorcycle.glb',
+    seatOffset: vec3(0, 0.6, 0),
+  },
+  truck: {
+    id: 'truck',
+    name: 'Flatbed',
+    mass: 3000,
+    maxSpeed: 25,
+    acceleration: 4,
+    brakeForce: 18,
+    steerSpeed: 1.8,
+    grip: 0.7,
+    suspensionStiffness: 40,
+    suspensionDamping: 6.0,
+    suspensionRestLength: 0.35,
+    engineForce: 4500,
+    dimensions: vec3(6.0, 2.0, 2.2),
+    wheelRadius: 0.45,
+    wheelCount: 4,
+    modelPath: '/assets/vehicles/models/truck.glb',
+    seatOffset: vec3(-0.5, 0.8, 0.5),
+  },
+  police: {
+    id: 'police',
+    name: 'Police Cruiser',
+    mass: 1300,
+    maxSpeed: 38.9,
+    acceleration: 9,
+    brakeForce: 16,
+    steerSpeed: 2.6,
+    grip: 0.88,
+    suspensionStiffness: 32,
+    suspensionDamping: 4.8,
+    suspensionRestLength: 0.3,
+    engineForce: 3500,
+    dimensions: vec3(4.5, 1.4, 1.8),
+    wheelRadius: 0.35,
+    wheelCount: 4,
+    modelPath: '/assets/vehicles/models/sedan.glb',
+    seatOffset: vec3(-0.4, 0.5, 0.3),
+  },
 };
 
 export function getVehicleType(id: VehicleTypeId): VehicleTypeConfig {
-  const config = VEHICLE_TYPES[id];
-  if (!config) throw new Error(`Unknown vehicle type: ${id}`);
-  return config;
+  return VEHICLE_TYPES[id];
 }
