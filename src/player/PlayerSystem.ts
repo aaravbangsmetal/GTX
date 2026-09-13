@@ -81,7 +81,9 @@ export class PlayerSystem implements System {
     ctx.events.emit('player:stateChange', { state: this.state.getSnapshot() });
   }
 
-  fixedUpdate(_dt: number): void {}
+  fixedUpdate(dt: number): void {
+    this.controller.update(dt);
+  }
 
   update(_dt: number): void {}
 
