@@ -1,4 +1,4 @@
-import type { IPhysicsService } from '../shared/services';
+import type { IPhysicsService, IWorldService } from '../shared/services';
 import type { BodyConfig, GameContext, RaycastHit, System, Transform, Vec3 } from '../shared/types';
 import { vec3 } from '../shared/math';
 import { BodyFactory } from './BodyFactory';
