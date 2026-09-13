@@ -6,6 +6,7 @@ import type { PlayerConfig } from './types';
 
 export class PlayerPhysics {
   private bodyId = -1;
+  private grounded = false;
   private readonly physics: PlayerPhysicsService;
 
   constructor(physics: PlayerPhysicsService, private config: PlayerConfig) {
@@ -25,6 +26,18 @@ export class PlayerPhysics {
 
   getBodyId(): number {
     return this.bodyId;
+  }
+
+  checkGrounded(): boolean {
+    if (this.bodyId < 0) {
+      this.grounded = false;
+      return false;
+    }
+
+    const pos = this.getPosition();
+    const hit = this.physics.raycast(pos, vec3(0, -1, 0), 1.1, CollisionGroup.STATIC);
+    this.grounded = hit !== null;
+    return this.grounded;
   }
 
   getPosition(): Vec3 {
