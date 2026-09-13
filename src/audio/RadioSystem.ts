@@ -100,9 +100,19 @@ export class RadioSystem {
     if (soundId === undefined) return;
 
     howl.volume(1, soundId);
+    howl.once('end', () => this.onTrackEnd(), soundId);
+
     this.currentTrack = howl;
     this.currentPath = path;
     this.currentSoundId = soundId;
+  }
+
+  private onTrackEnd(): void {
+    if (!this.active) return;
+
+    const station = this.getCurrentStation();
+    this.currentTrackIndex = (this.currentTrackIndex + 1) % station.tracks.length;
+    this.fadeToCurrentTrack();
   }
 
   private stopCurrentTrack(): void {
