@@ -37,6 +37,14 @@ export class PhysicsSystem implements System, IPhysicsService {
     );
     this.trimeshBuilder = new TrimeshBuilder(this.physicsWorld);
     this.constraints = new ConstraintManager(this.physicsWorld.world);
+    this.physicsWorld.setContactListener((event) => {
+      this.ctx.events.emit('physics:collision', {
+        entityA: event.entityA,
+        entityB: event.entityB,
+        point: event.point,
+        impulse: event.impulse,
+      });
+    });
     this.createGroundPlane();
   }
 
