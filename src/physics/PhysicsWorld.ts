@@ -95,6 +95,10 @@ export class PhysicsWorld {
     return this.bodyEntityMap;
   }
 
+  getCannonToBodyIdMap(): ReadonlyMap<number, number> {
+    return this.cannonToBodyId;
+  }
+
   private emitSignificantCollisions(): void {
     if (!this.contactListener) return;
 
