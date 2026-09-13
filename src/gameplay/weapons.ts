@@ -40,3 +40,5 @@ export const WEAPONS: Record<string, WeaponConfig> = {
 };
 
 export const DEFAULT_WEAPON_ID = 'fists';
+
+export const AMMO_WEAPON_IDS = ['pistol', 'smg'] as const;
