@@ -203,6 +203,8 @@ export class Minimap {
     this.ctx.rotate(heading);
 
     this.ctx.fillStyle = '#FFFFFF';
+    this.ctx.strokeStyle = '#2DD4BF';
+    this.ctx.lineWidth = 1.5;
     this.ctx.beginPath();
     this.ctx.moveTo(0, -8);
     this.ctx.lineTo(6, 6);
@@ -210,6 +212,7 @@ export class Minimap {
     this.ctx.lineTo(-6, 6);
     this.ctx.closePath();
     this.ctx.fill();
+    this.ctx.stroke();
 
     this.ctx.restore();
   }
