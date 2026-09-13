@@ -3,7 +3,9 @@ import { PLAYER_SPAWN } from '../shared/constants';
 import type { IRendererService, IWorldService } from '../shared/services';
 import type { EntityId, GameContext, System, Vec3 } from '../shared/types';
 import { DEFAULT_PLAYER_CONFIG } from './PlayerConfig';
+import { PlayerController } from './PlayerController';
 import { InputManager } from './InputManager';
+import { PlayerAnimator } from './PlayerAnimator';
 import { PlayerModel } from './PlayerModel';
 import { PlayerPhysics } from './PlayerPhysics';
 import { PlayerStateManager } from './PlayerState';
@@ -18,6 +20,8 @@ export class PlayerSystem implements System {
   private physics!: PlayerPhysics;
   private camera!: ThirdPersonCamera;
   private model!: PlayerModel;
+  private animator!: PlayerAnimator;
+  private controller!: PlayerController;
   private state!: PlayerStateManager;
   private entityId: EntityId = 0;
   private config = DEFAULT_PLAYER_CONFIG;
@@ -56,8 +60,21 @@ export class PlayerSystem implements System {
     this.camera = new ThirdPersonCamera(activeCamera, this.config, this.physicsService);
     this.camera.update(spawnPos, this.input.update(), 0);
 
+    this.animator = new PlayerAnimator();
+    this.animator.init(this.model.getMixer(), this.model.getClips());
+
     const meshSync = this.physicsService.getBodyMeshSync?.();
     meshSync?.bind(this.physics.getBodyId(), this.model.getMesh());
+
+    this.controller = new PlayerController(
+      this.input,
+      this.physics,
+      this.camera,
+      this.animator,
+      this.state,
+      this.config,
+      ctx.events,
+    );
 
     this.state.setPosition(spawnPos);
     ctx.events.emit('player:spawn', { entityId: this.entityId, position: spawnPos });
