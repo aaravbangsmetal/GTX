@@ -1,4 +1,12 @@
+import type { EventBus } from '../shared/events';
 import type { InputState } from './types';
+
+const GAME_KEYS = new Set([
+  'KeyW', 'KeyA', 'KeyS', 'KeyD',
+  'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
+  'ShiftLeft', 'ShiftRight', 'Space',
+  'KeyE', 'KeyF', 'Tab', 'Escape',
+]);
 
 function createEmptyInput(): InputState {
   return {
@@ -23,13 +31,17 @@ export class InputManager {
   private pointerLocked = false;
   private gamepadIndex: number | null = null;
   private canvas: HTMLCanvasElement | null = null;
+  private events: EventBus | null = null;
   private bound = false;
 
-  init(canvas: HTMLCanvasElement): void {
+  init(canvas: HTMLCanvasElement, events?: EventBus): void {
     this.canvas = canvas;
+    this.events = events ?? null;
     if (this.bound) return;
     this.bound = true;
     this.bindKeyboard();
+    this.bindPointerLock();
+    this.bindMouse();
   }
 
   update(): InputState {
@@ -49,6 +61,10 @@ export class InputManager {
   }
 
   private onKeyDown = (e: KeyboardEvent): void => {
+    if (this.pointerLocked && GAME_KEYS.has(e.code)) {
+      e.preventDefault();
+    }
+
     switch (e.code) {
       case 'KeyW':
       case 'ArrowUp':
@@ -78,6 +94,22 @@ export class InputManager {
         break;
       case 'KeyF':
         this.state.enterPassenger = true;
+        break;
+      case 'Tab':
+        if (this.pointerLocked) {
+          e.preventDefault();
+          this.events?.emit('ui:notification', {
+            text: 'Minimap toggle',
+            type: 'info',
+            duration: 1,
+          });
+        }
+        break;
+      case 'Escape':
+        if (this.pointerLocked) {
+          document.exitPointerLock();
+        }
+        this.events?.emit('game:pause', {});
         break;
       default:
         break;
@@ -120,9 +152,71 @@ export class InputManager {
     }
   };
 
+  private bindPointerLock(): void {
+    if (!this.canvas) return;
+
+    this.canvas.addEventListener('click', () => {
+      if (!this.pointerLocked) {
+        this.canvas?.requestPointerLock();
+      }
+    });
+
+    document.addEventListener('pointerlockchange', () => {
+      this.pointerLocked = document.pointerLockElement === this.canvas;
+      if (!this.pointerLocked) {
+        this.releaseAllKeys();
+      }
+    });
+  }
+
+  private bindMouse(): void {
+    document.addEventListener('mousemove', this.onMouseMove);
+    document.addEventListener('wheel', this.onWheel, { passive: true });
+    document.addEventListener('mousedown', this.onMouseDown);
+    document.addEventListener('mouseup', this.onMouseUp);
+  }
+
+  private onMouseMove = (e: MouseEvent): void => {
+    if (!this.pointerLocked) return;
+    this.state.mouseX += e.movementX;
+    this.state.mouseY += e.movementY;
+  };
+
+  private onWheel = (e: WheelEvent): void => {
+    this.state.scrollDelta += e.deltaY * 0.01;
+  };
+
+  private onMouseDown = (e: MouseEvent): void => {
+    if (!this.pointerLocked) return;
+    if (e.button === 0) this.state.attack = true;
+    if (e.button === 2) this.state.aim = true;
+  };
+
+  private onMouseUp = (e: MouseEvent): void => {
+    if (e.button === 0) this.state.attack = false;
+    if (e.button === 2) this.state.aim = false;
+  };
+
+  private releaseAllKeys(): void {
+    this.state.forward = false;
+    this.state.backward = false;
+    this.state.left = false;
+    this.state.right = false;
+    this.state.sprint = false;
+    this.state.jump = false;
+    this.state.interact = false;
+    this.state.enterPassenger = false;
+    this.state.attack = false;
+    this.state.aim = false;
+  }
+
   dispose(): void {
     window.removeEventListener('keydown', this.onKeyDown);
     window.removeEventListener('keyup', this.onKeyUp);
+    document.removeEventListener('mousemove', this.onMouseMove);
+    document.removeEventListener('wheel', this.onWheel);
+    document.removeEventListener('mousedown', this.onMouseDown);
+    document.removeEventListener('mouseup', this.onMouseUp);
     this.bound = false;
   }
 }
