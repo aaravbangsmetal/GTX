@@ -33,8 +33,30 @@ export class PlayerPhysics {
     return this.bodyId;
   }
 
+  applyMovement(direction: Vec3, speed: number, _dt: number): void {
+    if (!this.enabled || this.bodyId < 0) return;
+
+    const velocity = this.physics.getBodyVelocity?.(this.bodyId) ?? vec3();
+    setBodyVelocity(this.physics, this.bodyId, {
+      x: direction.x * speed,
+      y: velocity.y,
+      z: direction.z * speed,
+    });
+  }
+
+  jump(): void {
+    if (!this.enabled || !this.grounded || this.bodyId < 0) return;
+    const velocity = this.physics.getBodyVelocity?.(this.bodyId) ?? vec3();
+    setBodyVelocity(this.physics, this.bodyId, {
+      x: velocity.x,
+      y: this.config.jumpForce,
+      z: velocity.z,
+    });
+    this.grounded = false;
+  }
+
   checkGrounded(): boolean {
-    if (this.bodyId < 0) {
+    if (!this.enabled || this.bodyId < 0) {
       this.grounded = false;
       return false;
     }
@@ -48,5 +70,32 @@ export class PlayerPhysics {
   getPosition(): Vec3 {
     if (this.bodyId < 0) return vec3();
     return this.physics.getBodyTransform(this.bodyId).position;
+  }
+
+  getVelocity(): Vec3 {
+    if (this.bodyId < 0) return vec3();
+    return this.physics.getBodyVelocity?.(this.bodyId) ?? vec3();
+  }
+
+  teleport(position: Vec3): void {
+    if (this.bodyId < 0) return;
+    const transform = this.physics.getBodyTransform(this.bodyId);
+    this.physics.setBodyTransform(this.bodyId, {
+      ...transform,
+      position: { ...position },
+    });
+  }
+
+  setEnabled(enabled: boolean): void {
+    this.enabled = enabled;
+    if (this.bodyId < 0) return;
+    this.physics.setBodyEnabled?.(this.bodyId, enabled);
+    if (!enabled) {
+      setBodyVelocity(this.physics, this.bodyId, vec3());
+    }
+  }
+
+  isEnabled(): boolean {
+    return this.enabled;
   }
 }
