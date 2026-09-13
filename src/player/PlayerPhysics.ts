@@ -1,12 +1,17 @@
 import { vec3 } from '../shared/math';
 import type { Vec3 } from '../shared/types';
 import { CollisionGroup, PLAYER_COLLISION_MASK } from './collision';
-import { asPlayerPhysics, type PlayerPhysicsService } from './physics-bridge';
+import {
+  asPlayerPhysics,
+  setBodyVelocity,
+  type PlayerPhysicsService,
+} from './physics-bridge';
 import type { PlayerConfig } from './types';
 
 export class PlayerPhysics {
   private bodyId = -1;
   private grounded = false;
+  private enabled = true;
   private readonly physics: PlayerPhysicsService;
 
   constructor(physics: PlayerPhysicsService, private config: PlayerConfig) {
