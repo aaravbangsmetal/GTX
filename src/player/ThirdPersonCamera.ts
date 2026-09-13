@@ -1,7 +1,9 @@
 import * as THREE from 'three';
 import { clamp } from '../shared/math';
+import { vec3 } from '../shared/math';
 import type { Vec3 } from '../shared/types';
 import type { IPhysicsService } from '../shared/services';
+import { CollisionGroup } from './collision';
 import type { InputState, PlayerConfig } from './types';
 
 export class ThirdPersonCamera {
