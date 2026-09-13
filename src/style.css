@@ -6,4 +6,73 @@ body,
   height: 100%;
   overflow: hidden;
   background: #0b0b0c;
+  font-family: Inter, system-ui, sans-serif;
+}
+
+#game-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+#loading-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(160deg, #ff6b9d 0%, #ff8c42 45%, #7b4fbf 100%);
+  color: #fff;
+  transition: opacity 0.4s ease;
+}
+
+#loading-screen.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+#loading-screen h1 {
+  margin: 0 0 8px;
+  font-size: 3rem;
+  letter-spacing: 0.2em;
+}
+
+#loading-screen p {
+  margin: 0 0 24px;
+  opacity: 0.9;
+}
+
+#loading-bar {
+  width: 280px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+}
+
+#loading-fill {
+  width: 0%;
+  height: 100%;
+  background: #2dd4bf;
+  transition: width 0.2s ease;
+}
+
+.dev-overlay {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  z-index: 150;
+  padding: 6px 10px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.7);
+  color: #2dd4bf;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  pointer-events: none;
+}
+
+.dev-overlay.hidden {
+  display: none;
 }
