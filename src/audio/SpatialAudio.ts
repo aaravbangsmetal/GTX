@@ -68,6 +68,18 @@ export class SpatialAudio {
     sound.howl.pos(position.x, position.y, position.z, sound.soundId);
   }
 
+  setSoundRate(id: string, rate: number): void {
+    const sound = this.activeSounds.get(id);
+    if (!sound) return;
+    sound.howl.rate(rate, sound.soundId);
+  }
+
+  setSoundVolume(id: string, volume: number): void {
+    const sound = this.activeSounds.get(id);
+    if (!sound) return;
+    sound.howl.volume(volume, sound.soundId);
+  }
+
   updateListener(position: Vec3, forward: Vec3, up: Vec3): void {
     Howler.pos(position.x, position.y, position.z);
     const f = normalize3(forward);
