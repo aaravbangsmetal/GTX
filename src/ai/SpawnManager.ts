@@ -85,7 +85,7 @@ export class SpawnManager {
     const npc = new NPC(entityId, config, position, this.physics, tree, this.events);
 
     void npc.initModel().then(() => {
-      this.renderer.addToScene(npc.model.getMesh());
+      this.renderer.addToScene(npc.model.getMesh(), 2);
     });
 
     this.activeNPCs.set(entityId, npc);

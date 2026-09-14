@@ -46,7 +46,7 @@ export class NPC {
       dimensions: vec3(0.3, 0.9, 0.3),
       mass: 70,
       position: { ...position },
-      collisionGroup: 0x0004,
+      collisionGroup: 1 << 3,
       collisionMask: 0xffff,
     });
   }

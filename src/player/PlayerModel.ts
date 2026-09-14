@@ -21,7 +21,7 @@ export class PlayerModel {
     }
 
     this.buildPlaceholder(renderer);
-    renderer.addToScene(this.group);
+    renderer.addToScene(this.group, 2);
   }
 
   private buildPlaceholder(renderer: IRendererService): void {
