@@ -85,7 +85,9 @@ export class BodyFactory {
     );
     cylinder.collisionFilterGroup = config.group;
     cylinder.collisionFilterMask = config.mask;
-    body.addShape(cylinder);
+    const upright = new CANNON.Quaternion();
+    upright.setFromEuler(Math.PI / 2, 0, 0);
+    body.addShape(cylinder, new CANNON.Vec3(0, 0, 0), upright);
 
     const topSphere = new CANNON.Sphere(config.radius);
     topSphere.collisionFilterGroup = config.group;
