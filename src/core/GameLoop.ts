@@ -1,4 +1,5 @@
 import { MAX_DELTA_TIME, PHYSICS_TICK_RATE } from '../shared/constants';
+import { logger } from '../shared/logger';
 import type { EventBus } from '../shared/events';
 import type { SystemRegistry } from './SystemRegistry';
 
@@ -47,14 +48,22 @@ export class GameLoop {
     const fixedSystems = this.registry.getFixedUpdateSystems();
     while (this.accumulator >= this.fixedDelta) {
       for (const system of fixedSystems) {
-        system.fixedUpdate(this.fixedDelta);
+        try {
+          system.fixedUpdate(this.fixedDelta);
+        } catch (error) {
+          logger.error('loop', `${system.name} fixedUpdate failed`, error);
+        }
       }
       this.accumulator -= this.fixedDelta;
     }
 
     const variableSystems = this.registry.getVariableUpdateSystems();
     for (const system of variableSystems) {
-      system.update(delta);
+      try {
+        system.update(delta);
+      } catch (error) {
+        logger.error('loop', `${system.name} update failed`, error);
+      }
     }
 
     this.callbacks.onTick?.(delta, this.elapsed, this.fixedDelta);
