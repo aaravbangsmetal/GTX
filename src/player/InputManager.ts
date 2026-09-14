@@ -120,7 +120,6 @@ export class InputManager {
         if (this.pointerLocked) {
           document.exitPointerLock();
         }
-        this.events?.emit('game:pause', {});
         break;
       default:
         break;
