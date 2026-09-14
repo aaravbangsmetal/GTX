@@ -132,8 +132,8 @@ export class Game {
 
   private resizeCanvas(): void {
     if (!this.canvas) return;
-    this.canvas.width = window.innerWidth;
-    this.canvas.height = window.innerHeight;
+    this.canvas.style.width = '100%';
+    this.canvas.style.height = '100%';
   }
 
   private hideLoadingScreen(): void {
