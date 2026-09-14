@@ -10,9 +10,16 @@ interface SyncPair {
 
 export class BodyMeshSync {
   private readonly pairs = new Map<number, SyncPair>();
+  private resolveBody: ((bodyId: number) => CANNON.Body | undefined) | null = null;
 
-  bind(bodyId: number, mesh: Object3D, body: CANNON.Body, offset?: Vec3): void {
-    this.pairs.set(bodyId, { mesh, body, offset });
+  setBodyResolver(resolver: (bodyId: number) => CANNON.Body | undefined): void {
+    this.resolveBody = resolver;
+  }
+
+  bind(bodyId: number, mesh: Object3D, body?: CANNON.Body, offset?: Vec3): void {
+    const resolved = body ?? this.resolveBody?.(bodyId);
+    if (!resolved) return;
+    this.pairs.set(bodyId, { mesh, body: resolved, offset });
   }
 
   unbind(bodyId: number): void {
@@ -21,6 +28,7 @@ export class BodyMeshSync {
 
   sync(): void {
     for (const { mesh, body, offset } of this.pairs.values()) {
+      if (!body?.position) continue;
       if (offset) {
         mesh.position.set(
           body.position.x + offset.x,

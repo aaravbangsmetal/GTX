@@ -39,6 +39,13 @@ export class PhysicsSystem implements System, IPhysicsService {
       broadphase: 'sap',
       allowSleep: true,
     });
+    this.bodyMeshSync.setBodyResolver((bodyId) => {
+      try {
+        return this.physicsWorld.getBody(bodyId);
+      } catch {
+        return undefined;
+      }
+    });
     this.bodyFactory = new BodyFactory(this.physicsWorld.world);
     this.raycaster = new PhysicsRaycaster(
       this.physicsWorld.world,

@@ -3,7 +3,7 @@ import type { IPhysicsService } from '../shared/services';
 import type { Transform, Vec3 } from '../shared/types';
 
 export interface BodyMeshSyncBridge {
-  bind(bodyId: number, mesh: Object3D): void;
+  bind(bodyId: number, mesh: Object3D, body?: unknown, offset?: Vec3): void;
   unbind(bodyId: number): void;
 }
 
@@ -11,6 +11,7 @@ export interface PlayerPhysicsService extends IPhysicsService {
   setBodyVelocity?(bodyId: number, velocity: Vec3): void;
   getBodyVelocity?(bodyId: number): Vec3;
   setBodyEnabled?(bodyId: number, enabled: boolean): void;
+  getCannonBody?(bodyId: number): unknown;
   getBodyMeshSync?(): BodyMeshSyncBridge;
 }
 

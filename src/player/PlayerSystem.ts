@@ -66,8 +66,9 @@ export class PlayerSystem implements System, IPlayerService {
     this.animator = new PlayerAnimator();
     this.animator.init(this.model.getMixer(), this.model.getClips());
 
+    const bodyId = this.physics.getBodyId();
     const meshSync = this.physicsService.getBodyMeshSync?.();
-    meshSync?.bind(this.physics.getBodyId(), this.model.getMesh());
+    meshSync?.bind(bodyId, this.model.getMesh(), this.physicsService.getCannonBody?.(bodyId));
 
     this.controller = new PlayerController(
       this.input,
