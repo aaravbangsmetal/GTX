@@ -4,7 +4,7 @@ import type { IAssetLoader } from '../shared/types';
 const LOADING_TIPS = [
   'Tip: Press E near a vehicle to enter it',
   'Tip: Hold Shift to sprint',
-  'Tip: Press R in a vehicle to change radio station',
+  'Tip: Press Q in a vehicle to change radio station',
   'Tip: Avoid police attention for a peaceful tour',
   'Tip: Explore Ocean Beach at sunset for the best views',
 ];

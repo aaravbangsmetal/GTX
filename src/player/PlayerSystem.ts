@@ -105,6 +105,7 @@ export class PlayerSystem implements System, IPlayerService {
       this.physics.teleport(position);
       this.model.setVisible(true);
       this.state.setPosition(position);
+      this.camera.snapTo(position);
     });
   }
 
@@ -141,5 +142,34 @@ export class PlayerSystem implements System, IPlayerService {
   teleport(position: Vec3): void {
     this.physics.teleport(position);
     this.state.setPosition(position);
+  }
+
+  getSnapshot(): PlayerStateSnapshot {
+    return this.state.getSnapshot();
+  }
+
+  setHealth(value: number): void {
+    this.state.setHealth(value);
+  }
+
+  setArmor(value: number): void {
+    this.state.setArmor(value);
+  }
+
+  addMoney(amount: number): void {
+    this.state.addMoney(amount);
+  }
+
+  setWantedLevel(level: number): void {
+    this.state.setWantedLevel(level);
+  }
+
+  setWeapon(id: string | null): void {
+    this.state.setWeapon(id);
+  }
+
+  applyDamage(amount: number): void {
+    const health = this.state.getSnapshot().health;
+    this.state.setHealth(health - amount);
   }
 }

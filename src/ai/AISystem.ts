@@ -2,10 +2,6 @@ import { distance3 } from '../shared/math';
 import { PLAYER_SPAWN } from '../shared/constants';
 import type { DistrictId, GameContext, System, Vec3 } from '../shared/types';
 import type { IPhysicsService, IPlayerService, IRendererService, IWorldService } from '../shared/services';
-import { MockPhysicsService } from './__mocks__/MockPhysicsService';
-import { MockRendererService } from './__mocks__/MockRendererService';
-import { MockVehicleService } from './__mocks__/MockVehicleService';
-import { MockWorldService } from './__mocks__/MockWorldService';
 import { NavGrid } from './NavGrid';
 import { PedestrianPathfinder, RoadPathfinder } from './Pathfinder';
 import { PoliceAI } from './PoliceAI';
@@ -31,10 +27,10 @@ export class AISystem implements System {
   async init(ctx: GameContext): Promise<void> {
     this.ctx = ctx;
 
-    const world = this.resolveWorld(ctx);
-    const physics = this.resolvePhysics(ctx);
-    const renderer = this.resolveRenderer(ctx);
-    const vehicleControl = this.resolveVehicleControl(ctx);
+    const world = ctx.getSystem('world') as unknown as IWorldService;
+    const physics = ctx.getSystem('physics') as unknown as IPhysicsService;
+    const renderer = ctx.getSystem('renderer') as unknown as IRendererService;
+    const vehicleControl = ctx.getSystem('vehicles') as unknown as IVehicleAIControl;
 
     const roadData = adaptRoadNetwork(world.getRoadNetwork());
     this.roadPathfinder = new RoadPathfinder(roadData);
@@ -103,95 +99,12 @@ export class AISystem implements System {
   }
 
   private getDistrict(): DistrictId {
-    try {
-      const world = this.ctx!.getSystem('world') as unknown as IWorldService;
-      return world.getDistrictAt(this.playerPos) as DistrictId;
-    } catch {
-      return 1 as DistrictId;
-    }
+    const world = this.ctx!.getSystem('world') as unknown as IWorldService;
+    return world.getDistrictAt(this.playerPos) as DistrictId;
   }
 
   private getWantedLevel(): number {
-    try {
-      const player = this.ctx!.getSystem('player') as unknown as IPlayerService;
-      return player.getState().wantedLevel;
-    } catch {
-      return 0;
-    }
-  }
-
-  private resolveWorld(ctx: GameContext): IWorldService {
-    try {
-      const sys = ctx.getSystem('world');
-      if ('getRoadNetwork' in sys) return sys as unknown as IWorldService;
-    } catch { /* stub */ }
-    return new MockWorldService();
-  }
-
-  private resolvePhysics(ctx: GameContext): IPhysicsService {
-    try {
-      const sys = ctx.getSystem('physics');
-      if ('createBody' in sys) return sys as unknown as IPhysicsService;
-    } catch { /* stub */ }
-    return new MockPhysicsService();
-  }
-
-  private resolveRenderer(ctx: GameContext): IRendererService {
-    try {
-      const sys = ctx.getSystem('renderer');
-      if ('addToScene' in sys) return sys as unknown as IRendererService;
-    } catch { /* stub */ }
-    return new MockRendererService();
-  }
-
-  private resolveVehicleControl(ctx: GameContext): IVehicleAIControl {
-    try {
-      const sys = ctx.getSystem('vehicles');
-      if ('spawnVehicle' in sys && 'setAIInput' in sys) {
-        return sys as unknown as IVehicleAIControl;
-      }
-      if ('spawnVehicle' in sys) {
-        return new VehicleServiceAdapter(sys as unknown as import('../shared/services').IVehicleService);
-      }
-    } catch { /* stub */ }
-    return new MockVehicleService();
-  }
-}
-
-class VehicleServiceAdapter implements IVehicleAIControl {
-  private vehicleService: import('../shared/services').IVehicleService;
-  private inputs = new Map<number, import('./types').VehicleAIInput>();
-
-  constructor(vehicleService: import('../shared/services').IVehicleService) {
-    this.vehicleService = vehicleService;
-  }
-
-  getState(entityId: number) {
-    const snap = this.vehicleService.getVehicle(entityId);
-    if (!snap) return null;
-    return {
-      entityId: snap.entityId,
-      type: snap.type,
-      position: { x: 0, y: 0, z: 0 },
-      heading: 0,
-      speedKmh: snap.speedKmh,
-      health: snap.health,
-    };
-  }
-
-  setAIInput(entityId: number, input: import('./types').VehicleAIInput): void {
-    this.inputs.set(entityId, input);
-  }
-
-  spawnVehicle(type: string, position: Vec3): number {
-    return this.vehicleService.spawnVehicle(type, position);
-  }
-
-  despawnVehicle(entityId: number): void {
-    this.inputs.delete(entityId);
-  }
-
-  getNearbyVehicles(position: Vec3, radius: number): number[] {
-    return this.vehicleService.getNearbyVehicles(position, radius);
+    const player = this.ctx!.getSystem('player') as unknown as IPlayerService;
+    return player.getState().wantedLevel;
   }
 }

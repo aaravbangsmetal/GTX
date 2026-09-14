@@ -2,7 +2,7 @@ import type { EventBus } from '../shared/events';
 import type { EntityId, IAssetLoader } from '../shared/types';
 import type { IRendererService } from '../shared/services';
 import { quatFromHeading } from './helpers';
-import type { VehiclePhysicsService } from './__mocks__/MockPhysicsService';
+import type { VehiclePhysicsService } from './physics-service';
 import { VehicleDamage } from './VehicleDamage';
 import { VehicleModel } from './VehicleModel';
 import { VehiclePhysics } from './VehiclePhysics';

@@ -13,7 +13,6 @@ import { SettingsPanel } from './SettingsPanel';
 import { Speedometer } from './Speedometer';
 import { loadGoogleFonts } from './UITheme';
 import { WantedDisplay } from './WantedDisplay';
-import { mockPlayerService } from './__mocks__/MockPlayerService';
 import type { MinimapBlip, RadioStationInfo } from './types';
 
 import './styles/hud.css';
@@ -219,15 +218,7 @@ export class UISystem implements System {
   }
 
   private getPlayerService(): IPlayerService {
-    try {
-      const player = this.ctx.getSystem('player') as unknown as IPlayerService;
-      if (typeof player.getState === 'function') {
-        return player;
-      }
-    } catch {
-      // Stub player system
-    }
-    return mockPlayerService;
+    return this.ctx.getSystem('player') as unknown as IPlayerService;
   }
 
   private getMinimapData(): MinimapData & {

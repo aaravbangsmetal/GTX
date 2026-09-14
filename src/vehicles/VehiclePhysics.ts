@@ -2,7 +2,7 @@ import * as CANNON from 'cannon-es';
 import type { Quat, Vec3 } from '../shared/types';
 import { COLLISION_MASKS, CollisionGroup } from './collision-groups';
 import { headingFromQuat, quatFromHeading, speedFromVelocity } from './helpers';
-import type { VehiclePhysicsService } from './__mocks__/MockPhysicsService';
+import type { VehiclePhysicsService } from './physics-service';
 import { clamp, lerp } from '../shared/math';
 import type { VehicleInput, VehicleTypeConfig, WheelInfo } from './types';
 import { WheelRaycaster } from './WheelRaycaster';

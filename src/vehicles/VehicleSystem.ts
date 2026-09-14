@@ -1,4 +1,5 @@
 import { PerspectiveCamera } from 'three';
+import type { AIVehicleState, VehicleAIInput } from '../ai/types';
 import { distance3 } from '../shared/math';
 import type { EventBus } from '../shared/events';
 import type {
@@ -8,10 +9,8 @@ import type {
   Vec3,
 } from '../shared/types';
 import type { IPlayerService, IRendererService, IVehicleService, VehicleSnapshot as ServiceVehicleSnapshot } from '../shared/services';
-import { MockRendererService } from '../world/__mocks__/MockRendererService';
-import { MockPhysicsService, type VehiclePhysicsService } from './__mocks__/MockPhysicsService';
-import { MockPlayerService } from './__mocks__/MockPlayerService';
 import { EnterExit } from './EnterExit';
+import type { VehiclePhysicsService } from './physics-service';
 import { Vehicle } from './Vehicle';
 import { VehicleCamera } from './VehicleCamera';
 import { VehicleSpawner } from './VehicleSpawner';
@@ -40,13 +39,13 @@ export class VehicleSystem implements System, IVehicleService {
   private activeVehicleId: EntityId | null = null;
   private keysDown = new Set<string>();
   private lastSpeedKmh = 0;
-  private useInternalMocks = false;
+  private aiInputs = new Map<EntityId, VehicleInput>();
 
   async init(ctx: GameContext): Promise<void> {
     this.events = ctx.events;
-    this.renderer = this.resolveRenderer(ctx);
-    this.physics = this.resolvePhysics(ctx);
-    this.player = this.resolvePlayer(ctx);
+    this.renderer = ctx.getSystem('renderer') as unknown as IRendererService;
+    this.physics = ctx.getSystem('physics') as unknown as VehiclePhysicsService;
+    this.player = ctx.getSystem('player') as unknown as IPlayerService;
 
     this.enterExit = new EnterExit(this.vehicles, this.events);
     this.spawner = new VehicleSpawner(
@@ -81,10 +80,6 @@ export class VehicleSystem implements System, IVehicleService {
   }
 
   fixedUpdate(dt: number): void {
-    if (this.useInternalMocks) {
-      this.physics.step(dt);
-    }
-
     for (const vehicle of this.vehicles.values()) {
       if (vehicle.state === VehicleState.DESTROYED) continue;
 
@@ -108,6 +103,17 @@ export class VehicleSystem implements System, IVehicleService {
           rpm: result.rpm,
           speed: result.speed,
         });
+        continue;
+      }
+
+      if (vehicle.state === VehicleState.AI_CONTROLLED) {
+        const input = this.aiInputs.get(vehicle.entityId) ?? {
+          throttle: 0,
+          steer: 0,
+          brake: false,
+          handbrake: false,
+        };
+        vehicle.physics.update(input, dt);
       }
     }
   }
@@ -175,6 +181,43 @@ export class VehicleSystem implements System, IVehicleService {
     return this.spawner.spawnSync(type as VehicleTypeId, position);
   }
 
+  getState(entityId: EntityId): AIVehicleState | null {
+    const vehicle = this.vehicles.get(entityId);
+    if (!vehicle) return null;
+    const snap = vehicle.getSnapshot();
+    return {
+      entityId: snap.entityId,
+      type: snap.type,
+      position: snap.position,
+      heading: snap.heading,
+      speedKmh: snap.speedKmh,
+      health: snap.health,
+    };
+  }
+
+  setAIInput(entityId: EntityId, input: VehicleAIInput): void {
+    const vehicle = this.vehicles.get(entityId);
+    if (!vehicle || vehicle.state === VehicleState.DESTROYED) return;
+    if (vehicle.state === VehicleState.DRIVEN) return;
+
+    vehicle.state = VehicleState.AI_CONTROLLED;
+    this.aiInputs.set(entityId, {
+      throttle: input.throttle,
+      steer: input.steer,
+      brake: input.brake > 0,
+      handbrake: false,
+    });
+  }
+
+  despawnVehicle(entityId: EntityId): void {
+    if (this.activeVehicleId === entityId) {
+      this.activeVehicleId = null;
+      this.vehicleCamera.deactivate();
+    }
+    this.aiInputs.delete(entityId);
+    this.spawner.despawn(entityId);
+  }
+
   private readonly onKeyDown = (e: KeyboardEvent): void => {
     if (KEY_BINDINGS[e.code]) {
       this.keysDown.add(e.code);
@@ -196,9 +239,6 @@ export class VehicleSystem implements System, IVehicleService {
       const exitPos = this.enterExit.exit(playerId, this.activeVehicleId);
       if (exitPos) {
         this.player.teleport(exitPos);
-        if (this.player instanceof MockPlayerService) {
-          this.player.setInVehicle(null);
-        }
       }
       return;
     }
@@ -214,9 +254,6 @@ export class VehicleSystem implements System, IVehicleService {
           }
           break;
         }
-      }
-      if (this.player instanceof MockPlayerService) {
-        this.player.setInVehicle(this.activeVehicleId);
       }
     }
   }
@@ -261,45 +298,5 @@ export class VehicleSystem implements System, IVehicleService {
         this.vehicleCamera.deactivate();
       }
     }
-  }
-
-  private resolvePhysics(ctx: GameContext): VehiclePhysicsService {
-    const sys = ctx.getSystem('physics') as unknown;
-    if (
-      sys &&
-      typeof sys === 'object' &&
-      'getCannonBody' in sys &&
-      typeof (sys as VehiclePhysicsService).getCannonBody === 'function'
-    ) {
-      return sys as VehiclePhysicsService;
-    }
-    this.useInternalMocks = true;
-    return new MockPhysicsService();
-  }
-
-  private resolveRenderer(ctx: GameContext): IRendererService {
-    const sys = ctx.getSystem('renderer') as unknown;
-    if (
-      sys &&
-      typeof sys === 'object' &&
-      'getScene' in sys &&
-      typeof (sys as IRendererService).getScene === 'function'
-    ) {
-      return sys as IRendererService;
-    }
-    return new MockRendererService(ctx.canvas);
-  }
-
-  private resolvePlayer(ctx: GameContext): IPlayerService {
-    const sys = ctx.getSystem('player') as unknown;
-    if (
-      sys &&
-      typeof sys === 'object' &&
-      'getEntityId' in sys &&
-      typeof (sys as IPlayerService).getEntityId === 'function'
-    ) {
-      return sys as IPlayerService;
-    }
-    return new MockPlayerService();
   }
 }

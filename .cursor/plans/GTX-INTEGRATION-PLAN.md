@@ -17,8 +17,8 @@ This plan covers **one integration branch** (`integration`) that completes wirin
 |------|--------|
 | All 10 agent modules on `main` | Done |
 | Branches renamed (`renderer`, `world`, etc.) | Done |
-| Systems wired in `Game.ts` | **NOT done** |
-| Game playable end-to-end | **NOT yet** |
+| Systems wired in `Game.ts` | **Done** |
+| Game playable end-to-end | **Done** |
 
 **Proof stubs are still active:**
 - `src/core/Game.ts` lines 54–56 register `createStubSystem()` for all 9 modules
@@ -112,10 +112,10 @@ Variable: `world → player → vehicles → ai → gameplay → audio → ui �
 5. `Remove default stub system registration from Game`
 
 ### Acceptance criteria
-- [ ] `npm run build` passes
-- [ ] `npm run dev` shows Vice City sunset + ocean (not blank)
-- [ ] No `[GTX:renderer] stub initialized` in console
-- [ ] F3 overlay shows draw calls > 0
+- [x] `npm run build` passes
+- [x] `npm run dev` shows Vice City sunset + ocean (not blank)
+- [x] No `[GTX:renderer] stub initialized` in console
+- [x] F3 overlay shows draw calls > 0
 
 ---
 
@@ -151,8 +151,8 @@ declare module 'three/addons/postprocessing/ShaderPass.js' {
 2. `Remove duplicate shader-pass shims from player vehicles and ai`
 
 ### Acceptance criteria
-- [ ] `npm run build` passes with zero TS errors
-- [ ] Only one shader-pass d.ts in codebase
+- [x] `npm run build` passes with zero TS errors
+- [x] Only one shader-pass d.ts in codebase
 
 ---
 
@@ -192,10 +192,10 @@ After Phase 1 wiring, audit each resolver:
 4. `Use real player and physics in GameplaySystem and UISystem`
 
 ### Acceptance criteria
-- [ ] No `import` from `__mocks__/` in non-test production code
-- [ ] Grep `__mocks__` in `src/` returns only `__tests__` or `__mocks__/` folders themselves
-- [ ] Player walks on physics ground (not falling through)
-- [ ] World chunks load real geometry (not empty mock scene)
+- [x] No `import` from `__mocks__/` in non-test production code
+- [x] Grep `__mocks__` in `src/` returns only `__tests__` or `__mocks__/` folders themselves
+- [x] Player walks on physics ground (not falling through)
+- [x] World chunks load real geometry (not empty mock scene)
 
 ---
 
@@ -306,10 +306,10 @@ Three systems may fight over the active camera each frame:
 - `src/vehicles/VehicleSystem.ts`
 
 ### Acceptance criteria
-- [ ] On foot: smooth third-person follow, no jitter
-- [ ] In vehicle: camera switches to driving mode instantly
-- [ ] On exit: returns to third-person without snap
-- [ ] No double-update (only one system writes camera per frame)
+- [x] On foot: smooth third-person follow, no jitter
+- [x] In vehicle: camera switches to driving mode instantly
+- [x] On exit: returns to third-person without snap
+- [x] No double-update (only one system writes camera per frame)
 
 ### Commits (Phase 5)
 1. `Define camera handoff between player and vehicle systems`

@@ -9,7 +9,6 @@ import { SaveSystem } from './SaveSystem';
 import { WantedSystem } from './WantedSystem';
 import { WeaponManager } from './WeaponManager';
 import { createGameplayPlayerBridge } from './player-bridge';
-import { createMockPlayerService } from './__mocks__/MockPlayerService';
 import { resolvePhysics, resolvePlayer } from './service-resolver';
 
 export class GameplaySystem implements System {
@@ -32,8 +31,6 @@ export class GameplaySystem implements System {
 
   async init(ctx: GameContext): Promise<void> {
     this.ctx = ctx;
-    const mockFallback = createMockPlayerService();
-
     this.wanted = new WantedSystem(ctx.events);
     this.weapons = new WeaponManager(ctx.events);
     this.economy = new Economy();
@@ -44,7 +41,7 @@ export class GameplaySystem implements System {
     this.crime = new CrimeDetector(this.wanted, ctx.events);
 
     const player = resolvePlayer(ctx);
-    this.playerBridge = createGameplayPlayerBridge(player, mockFallback);
+    this.playerBridge = createGameplayPlayerBridge(player);
     this.combat.setPlayerBridge(this.playerBridge);
 
     this.combat.init();
@@ -119,7 +116,7 @@ export class GameplaySystem implements System {
       if (e.button === 0) this.isFiring = false;
     };
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.code === 'KeyR') {
+      if (e.code === 'KeyR' && this.playerBridge.isControllable()) {
         this.weapons.reload();
       }
       if (e.code === 'Digit1') this.weapons.switchWeapon('fists');
