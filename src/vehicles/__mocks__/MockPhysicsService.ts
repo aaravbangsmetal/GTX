@@ -2,12 +2,7 @@ import * as CANNON from 'cannon-es';
 import type { IPhysicsService } from '../../shared/services';
 import type { BodyConfig, RaycastHit, Transform, Vec3 } from '../../shared/types';
 import { COLLISION_MASKS, CollisionGroup } from '../collision-groups';
-
-export interface VehiclePhysicsService extends IPhysicsService {
-  getCannonBody(bodyId: number): CANNON.Body;
-  getWorld(): CANNON.World;
-  step(dt: number): void;
-}
+import type { VehiclePhysicsService } from '../physics-service';
 
 export class MockPhysicsService implements VehiclePhysicsService {
   private world = new CANNON.World({ gravity: new CANNON.Vec3(0, -9.82, 0) });

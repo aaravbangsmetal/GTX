@@ -16,8 +16,6 @@ import { PropPlacer } from './PropPlacer';
 import { RoadNetwork } from './RoadNetwork';
 import { Terrain } from './Terrain';
 import { WorldMaterials } from './WorldMaterials';
-import { MockRendererService } from './__mocks__/MockRendererService';
-
 export class WorldSystem implements System, IWorldService {
   readonly name = 'world' as const;
 
@@ -32,20 +30,12 @@ export class WorldSystem implements System, IWorldService {
   private playerPosition: Vec3 = { ...PLAYER_SPAWN };
   private currentDistrict = getDistrictAtPosition(PLAYER_SPAWN.x, PLAYER_SPAWN.z);
   private onPlayerMove: ((payload: { position: Vec3 }) => void) | null = null;
+  private onPlayerSpawn: ((payload: { position: Vec3 }) => void) | null = null;
 
   async init(ctx: GameContext): Promise<void> {
     this.ctx = ctx;
 
-    try {
-      const rendererSystem = ctx.getSystem('renderer');
-      if ('getScene' in rendererSystem && typeof rendererSystem.getScene === 'function') {
-        this.renderer = rendererSystem as unknown as IRendererService;
-      } else {
-        this.renderer = new MockRendererService(ctx.canvas);
-      }
-    } catch {
-      this.renderer = new MockRendererService(ctx.canvas);
-    }
+    this.renderer = ctx.getSystem('renderer') as unknown as IRendererService;
 
     this.materials = new WorldMaterials(this.renderer);
     this.roadNetwork = new RoadNetwork(MAP_DATA);
@@ -66,7 +56,12 @@ export class WorldSystem implements System, IWorldService {
     this.onPlayerMove = (payload) => {
       this.playerPosition = payload.position;
     };
+    this.onPlayerSpawn = (payload) => {
+      this.playerPosition = payload.position;
+      this.chunkStreamer.update(this.playerPosition, 0);
+    };
     ctx.events.on('player:move', this.onPlayerMove);
+    ctx.events.on('player:spawn', this.onPlayerSpawn);
 
     this.chunkStreamer.update(this.playerPosition, 0);
   }
@@ -88,8 +83,9 @@ export class WorldSystem implements System, IWorldService {
   }
 
   dispose(): void {
-    if (this.ctx && this.onPlayerMove) {
-      this.ctx.events.off('player:move', this.onPlayerMove);
+    if (this.ctx) {
+      if (this.onPlayerMove) this.ctx.events.off('player:move', this.onPlayerMove);
+      if (this.onPlayerSpawn) this.ctx.events.off('player:spawn', this.onPlayerSpawn);
     }
     this.chunkStreamer?.dispose();
     this.materials?.dispose();

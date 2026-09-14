@@ -86,4 +86,8 @@ export class ThirdPersonCamera {
   getDistance(): number {
     return this.distance;
   }
+
+  snapTo(_playerPos: Vec3): void {
+    this.initialized = false;
+  }
 }

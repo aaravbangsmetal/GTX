@@ -1,15 +1,23 @@
+import { createAISystem } from '../ai';
+import { createAudioSystem } from '../audio';
+import { createGameplaySystem } from '../gameplay';
+import { createPhysicsSystem } from '../physics';
+import { createPlayerSystem } from '../player';
+import { createRendererSystem } from '../renderer';
+import { EventBus } from '../shared/events';
+import { logger } from '../shared/logger';
+import type { GameContext } from '../shared/types';
+import { GameState } from '../shared/types';
+import { createUISystem } from '../ui';
+import { createVehicleSystem } from '../vehicles';
+import { createWorldSystem } from '../world';
 import { AssetLoader } from './AssetLoader';
 import { createCoreSystem } from './createSystem';
 import { DevOverlay } from './DevOverlay';
 import { EntityManager } from './EntityManager';
 import { GameLoop } from './GameLoop';
-import { createStubSystem, STUB_SYSTEM_NAMES } from './stubs';
 import { StateManager } from './StateManager';
 import { SystemRegistry } from './SystemRegistry';
-import { EventBus } from '../shared/events';
-import { logger } from '../shared/logger';
-import type { GameContext } from '../shared/types';
-import { GameState } from '../shared/types';
 
 export class Game {
   private events = new EventBus();
@@ -50,10 +58,15 @@ export class Game {
     };
 
     this.registry.register(createCoreSystem(this.overlay, this.state));
-
-    for (const name of STUB_SYSTEM_NAMES) {
-      this.registry.register(createStubSystem(name));
-    }
+    this.registry.register(createRendererSystem(this.ctx));
+    this.registry.register(createWorldSystem(this.ctx));
+    this.registry.register(createPhysicsSystem(this.ctx));
+    this.registry.register(createPlayerSystem(this.ctx));
+    this.registry.register(createVehicleSystem(this.ctx));
+    this.registry.register(createAISystem(this.ctx));
+    this.registry.register(createAudioSystem(this.ctx));
+    this.registry.register(createUISystem(this.ctx));
+    this.registry.register(createGameplaySystem(this.ctx));
 
     const systems = this.registry.getAll();
     for (const system of systems) {
@@ -73,7 +86,24 @@ export class Game {
 
     this.loop = new GameLoop(this.registry, this.events, {
       onTick: () => {
-        this.overlay.update({ entities: this.entities.count() });
+        let drawCalls = 0;
+        let triangles = 0;
+        try {
+          const renderer = this.registry.get('renderer');
+          if (renderer && 'getStats' in renderer) {
+            const stats = (renderer as { getStats(): { drawCalls: number; triangles: number } }).getStats();
+            drawCalls = stats.drawCalls;
+            triangles = stats.triangles;
+          }
+        } catch {
+          // Renderer not ready yet.
+        }
+
+        this.overlay.update({
+          entities: this.entities.count(),
+          drawCalls,
+          triangles,
+        });
       },
     });
     this.loop.start();

@@ -106,7 +106,7 @@ export class AudioSystem implements System {
 
   private bindRadioInput(): void {
     window.addEventListener('keydown', (event) => {
-      if (event.code !== 'KeyR' || event.repeat) return;
+      if (event.code !== 'KeyQ' || event.repeat) return;
       if (!this.radio.isActive()) return;
       this.radio.nextStation();
     });

@@ -1,7 +1,7 @@
 import type { EventBus } from '../shared/events';
 import type { EntityId, GameContext, Vec3 } from '../shared/types';
 import type { IRendererService } from '../shared/services';
-import type { VehiclePhysicsService } from './__mocks__/MockPhysicsService';
+import type { VehiclePhysicsService } from './physics-service';
 import { Vehicle } from './Vehicle';
 import { getVehicleType } from './VehicleTypes';
 import type { VehicleTypeId } from './types';

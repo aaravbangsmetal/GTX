@@ -1,3 +1,4 @@
+import * as CANNON from 'cannon-es';
 import type { IPhysicsService, IWorldService } from '../shared/services';
 import type {
   BodyConfig,
@@ -213,5 +214,41 @@ export class PhysicsSystem implements System, IPhysicsService {
 
   getEntityIdForBody(bodyId: number): EntityId | undefined {
     return this.bodyIdToEntity.get(bodyId);
+  }
+
+  getCannonBody(bodyId: number): CANNON.Body {
+    return this.physicsWorld.getBody(bodyId);
+  }
+
+  getWorld(): CANNON.World {
+    return this.physicsWorld.world;
+  }
+
+  step(_dt: number): void {
+    // World stepping happens in fixedUpdate; vehicles share this world.
+  }
+
+  getBodyVelocity(bodyId: number): Vec3 {
+    const body = this.physicsWorld.getBody(bodyId);
+    return { x: body.velocity.x, y: body.velocity.y, z: body.velocity.z };
+  }
+
+  setBodyVelocity(bodyId: number, velocity: Vec3): void {
+    const body = this.physicsWorld.getBody(bodyId);
+    body.velocity.set(velocity.x, velocity.y, velocity.z);
+    body.wakeUp();
+  }
+
+  setBodyEnabled(bodyId: number, enabled: boolean): void {
+    const body = this.physicsWorld.getBody(bodyId);
+    if (enabled) {
+      body.type = CANNON.Body.DYNAMIC;
+      body.wakeUp();
+      return;
+    }
+
+    body.velocity.set(0, 0, 0);
+    body.angularVelocity.set(0, 0, 0);
+    body.type = CANNON.Body.KINEMATIC;
   }
 }
