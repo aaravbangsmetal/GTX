@@ -105,7 +105,7 @@ export const DEFAULT_PEDESTRIAN_CONFIG: NPCConfig = {
 
 export const DEFAULT_TRAFFIC_CONFIG: TrafficVehicleConfig = {
   type: 'sedan',
-  maxSpeed: 40,
+  maxSpeed: 32,
   followDistance: 8,
   laneOffset: 0,
 };

@@ -15,6 +15,11 @@ interface TrafficEntry {
 }
 
 const TRAFFIC_TYPES = ['sedan', 'sedan', 'sportscar', 'truck'] as const;
+const TRAFFIC_SPEED_BY_TYPE: Record<(typeof TRAFFIC_TYPES)[number], number> = {
+  sedan: 32,
+  sportscar: 42,
+  truck: 24,
+};
 const DESPAWN_DISTANCE = 250;
 const SPAWN_MIN = 150;
 const SPAWN_MAX = 200;
@@ -73,7 +78,11 @@ export class TrafficManager {
       const entityId = this.vehicleControl.spawnVehicle(type, spawnPos);
       const dest = this.roadPathfinder.getRandomRoadPoint(spawnPos, 200, 500);
 
-      const config: TrafficVehicleConfig = { ...TRAFFIC_CONFIG, type };
+      const config: TrafficVehicleConfig = {
+        ...TRAFFIC_CONFIG,
+        type,
+        maxSpeed: TRAFFIC_SPEED_BY_TYPE[type],
+      };
       const ai = new TrafficAI(
         entityId,
         this.vehicleControl,

@@ -8,6 +8,7 @@ import type { AiIntersection, IVehicleAIControl, TrafficVehicleConfig } from './
 const WAYPOINT_THRESHOLD = 3;
 const AVOIDANCE_DISTANCE = 10;
 const INTERSECTION_CHECK_RADIUS = 15;
+const SPEED_TOLERANCE_KMH = 3;
 
 export class TrafficAI {
   private path: Vec3[] = [];
@@ -81,8 +82,12 @@ export class TrafficAI {
       this.stoppedAtLight = shouldStop;
     } else {
       this.stoppedAtLight = false;
-      const targetMs = (this.targetSpeed / 3.6);
-      if (this.currentSpeed < targetMs) {
+      const targetMs = this.targetSpeed / 3.6;
+      if (state.speedKmh > this.targetSpeed + SPEED_TOLERANCE_KMH) {
+        brake = 0.35;
+        throttle = 0;
+        this.currentSpeed = Math.max(targetMs, this.currentSpeed - 12 * dt);
+      } else if (this.currentSpeed < targetMs) {
         this.currentSpeed = Math.min(targetMs, this.currentSpeed + 5 * dt);
         throttle = 0.6;
       } else {
