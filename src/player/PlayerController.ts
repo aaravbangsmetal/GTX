@@ -27,7 +27,6 @@ export class PlayerController {
 
     const input = this.input.update();
     this.lastInput = input;
-    const pos = this.physics.getPosition();
     const yaw = this.camera.getYaw();
 
     const forward = vec3(-Math.sin(yaw), 0, -Math.cos(yaw));
@@ -52,6 +51,7 @@ export class PlayerController {
       this.physics.jump();
     }
 
+    const pos = this.physics.getPosition();
     const grounded = this.physics.checkGrounded();
     const velocity = this.physics.getVelocity();
 
