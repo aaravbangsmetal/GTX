@@ -1,10 +1,12 @@
 import type { PlayerConfig } from './types';
 
 export const DEFAULT_PLAYER_CONFIG: PlayerConfig = {
-  walkSpeed: 4,
-  runSpeed: 8,
-  sprintSpeed: 12,
-  jumpForce: 6,
+  walkSpeed: 2.8,
+  runSpeed: 5.8,
+  sprintSpeed: 7.8,
+  acceleration: 28,
+  deceleration: 36,
+  jumpForce: 5.5,
   rotationSpeed: 0.002,
   cameraDistance: 5,
   cameraHeight: 2,

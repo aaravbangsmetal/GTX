@@ -28,6 +28,8 @@ export interface PlayerConfig {
   walkSpeed: number;
   runSpeed: number;
   sprintSpeed: number;
+  acceleration: number;
+  deceleration: number;
   jumpForce: number;
   rotationSpeed: number;
   cameraDistance: number;
