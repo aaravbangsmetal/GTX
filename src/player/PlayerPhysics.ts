@@ -1,4 +1,4 @@
-import { vec3 } from '../shared/math';
+import { clamp, vec3 } from '../shared/math';
 import type { Vec3 } from '../shared/types';
 import { CollisionGroup, PLAYER_COLLISION_MASK } from './collision';
 import {
@@ -33,14 +33,19 @@ export class PlayerPhysics {
     return this.bodyId;
   }
 
-  applyMovement(direction: Vec3, speed: number, _dt: number): void {
+  applyMovement(direction: Vec3, speed: number, dt: number): void {
     if (!this.enabled || this.bodyId < 0) return;
 
     const velocity = this.physics.getBodyVelocity?.(this.bodyId) ?? vec3();
+    const targetX = direction.x * speed;
+    const targetZ = direction.z * speed;
+    const rate = speed > 0 ? this.config.acceleration : this.config.deceleration;
+    const step = rate * dt;
+
     setBodyVelocity(this.physics, this.bodyId, {
-      x: direction.x * speed,
+      x: moveToward(velocity.x, targetX, step),
       y: velocity.y,
-      z: direction.z * speed,
+      z: moveToward(velocity.z, targetZ, step),
     });
   }
 
@@ -98,4 +103,10 @@ export class PlayerPhysics {
   isEnabled(): boolean {
     return this.enabled;
   }
+}
+
+function moveToward(current: number, target: number, maxDelta: number): number {
+  const delta = target - current;
+  if (Math.abs(delta) <= maxDelta) return target;
+  return current + clamp(delta, -maxDelta, maxDelta);
 }
