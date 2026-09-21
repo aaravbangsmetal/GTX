@@ -169,20 +169,22 @@ export class VehiclePhysics {
       }
     }
 
+    let finalSpeed = speed;
     if (speed > this.config.maxSpeed) {
       const scale = this.config.maxSpeed / speed;
       body.velocity.x *= scale;
       body.velocity.z *= scale;
+      finalSpeed = this.config.maxSpeed;
     }
 
-    const wheelSpin = speed / this.config.wheelRadius;
+    const wheelSpin = finalSpeed / this.config.wheelRadius;
     for (const wheel of this.wheels) {
       wheel.spinAngle += wheelSpin * dt;
     }
 
-    const speedKmh = speed * 3.6;
+    const speedKmh = finalSpeed * 3.6;
     const rpm = 800 + speedKmh * 40;
-    return { speed, speedKmh, rpm };
+    return { speed: finalSpeed, speedKmh, rpm };
   }
 
   getBodyId(): number {
