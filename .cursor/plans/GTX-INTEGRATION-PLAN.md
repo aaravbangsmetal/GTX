@@ -442,21 +442,7 @@ gh pr create --title "Integrate all GTX systems into playable game" --body "..."
 
 ## 12. Final Control Scheme (after Phase 6)
 
-| Input | On foot | In vehicle |
-|-------|---------|------------|
-| WASD | Move | Drive |
-| Mouse | Camera orbit | — |
-| Shift | Sprint | — |
-| Space | Jump | Handbrake |
-| E | Enter vehicle | Exit vehicle |
-| F | Enter as passenger | — |
-| Left click | Shoot | — |
-| R | Reload | — |
-| Q | — | Cycle radio |
-| 1/2/3 | Weapon switch | — |
-| Tab | Toggle minimap | Toggle minimap |
-| Escape | Pause menu | Pause menu |
-| F3 | Dev overlay | Dev overlay |
+Player-facing controls live in [`play.md`](../../play.md). Do not keep a second copy here.
 
 ---
 
